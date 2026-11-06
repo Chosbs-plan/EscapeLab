@@ -1,0 +1,4 @@
+node_modules/
+dist/
+batch.json
+.DS_Store
