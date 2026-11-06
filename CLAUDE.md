@@ -508,3 +508,4 @@ tools/batch.mjs를 완성해: `node tools/batch.mjs 60` → v1, v2 각각
 ## 진행 상황
 
 - W0 (2026-11-06): Vite 7.3.7 + three 0.186.1 골격, 빈 씬(배경 `#0e1013`), 모듈 자리 파일 생성.
+- 배포 (2026-11-06): `main` 브랜치 = 빌드 결과만(정적 호스팅용). `bash tools/deploy-main.sh`로 갱신. Vite `base: './'`(하위 경로 호스팅 대응).
