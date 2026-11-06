@@ -1,0 +1,95 @@
+{
+ "Raccoon": {
+  "bake_max_err_m": 3.6480426788360054e-05,
+  "bones": 32,
+  "anims": [
+   "Idle",
+   "Walk",
+   "Run",
+   "JumpStart",
+   "JumpAir",
+   "JumpLand",
+   "Fall",
+   "SlideEnter",
+   "SlideLoop",
+   "SlideExit",
+   "CrawlLoop",
+   "StandUp"
+  ],
+  "tris": 1699
+ },
+ "LabRat": {
+  "bake_max_err_m": 4.3153762817674246e-07,
+  "bones": 35,
+  "anims": [
+   "Idle",
+   "Walk",
+   "Run",
+   "JumpStart",
+   "JumpAir",
+   "JumpLand",
+   "Fall",
+   "SlideEnter",
+   "SlideLoop",
+   "SlideExit",
+   "CrawlLoop",
+   "StandUp"
+  ],
+  "tris": 1877
+ },
+ "Crow": {
+  "bake_max_err_m": 9.435415267988745e-07,
+  "bones": 35,
+  "anims": [
+   "Idle",
+   "Walk",
+   "Run",
+   "JumpStart",
+   "JumpAir",
+   "JumpLand",
+   "Fall",
+   "SlideEnter",
+   "SlideLoop",
+   "SlideExit",
+   "CrawlLoop",
+   "StandUp"
+  ],
+  "tris": 1726
+ },
+ "Hound": {
+  "bake_max_err_m": 4.100799562145596e-07,
+  "bones": 27,
+  "anims": [
+   "Idle",
+   "Walk",
+   "Run",
+   "HighJumpPrep",
+   "HighJumpAir",
+   "HighJumpLand",
+   "Fall",
+   "ChargeLoop",
+   "Dash",
+   "DashMissRecover",
+   "DashHitPin"
+  ],
+  "tris": 1354
+ },
+ "Root": {
+  "bake_max_err_m": 4.100799562145596e-07,
+  "bones": 26,
+  "anims": [
+   "Idle",
+   "Walk",
+   "Run",
+   "HighJumpPrep",
+   "HighJumpAir",
+   "HighJumpLand",
+   "Fall",
+   "ChargeLoop",
+   "Dash",
+   "DashMissRecover",
+   "DashHitPin"
+  ],
+  "tris": 1646
+ }
+}

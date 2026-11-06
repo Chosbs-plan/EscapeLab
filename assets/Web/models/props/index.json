@@ -1,0 +1,636 @@
+{
+ "SM_Printer": {
+  "source": "Printer.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   1.7122,
+   1.4626,
+   1.3118
+  ],
+  "minY_m": 0.0,
+  "tris": 1016,
+  "parts": [
+   "SM_Printer",
+   "SM_Printer_Glass",
+   "SM_Printer_Head",
+   "SM_Printer_Head_Outline",
+   "SM_Printer_Outline",
+   "SM_Printer_Status"
+  ]
+ },
+ "REF_PrintKey": {
+  "source": "Printer.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.2058,
+   0.4158,
+   0.0588
+  ],
+  "minY_m": -0.0084,
+  "tris": 168,
+  "parts": [
+   "REF_PrintKey",
+   "REF_PrintKey_Outline"
+  ]
+ },
+ "REF_PrintKey_Half": {
+  "source": "Printer.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.1334,
+   0.1953,
+   0.0588
+  ],
+  "minY_m": -0.0084,
+  "tris": 72,
+  "parts": [
+   "REF_PrintKey_Half",
+   "REF_PrintKey_Half_Outline"
+  ]
+ },
+ "SM_Tool_Cryo": {
+  "source": "Tools.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.2067,
+   0.2411,
+   0.1493
+  ],
+  "minY_m": -0.0056,
+  "tris": 620,
+  "parts": [
+   "SM_Tool_Cryo",
+   "SM_Tool_Cryo_Outline",
+   "SM_Tool_Cryo_Pin",
+   "SM_Tool_Cryo_Pin_Outline"
+  ]
+ },
+ "SM_Tool_Taser": {
+  "source": "Tools.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.5857,
+   0.2076,
+   0.5857
+  ],
+  "minY_m": -0.0126,
+  "tris": 996,
+  "parts": [
+   "SM_Tool_Taser",
+   "SM_Tool_Taser_Outline",
+   "SM_Tool_Taser_Status"
+  ]
+ },
+ "SM_Tool_VentLock": {
+  "source": "Tools.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.7212,
+   0.4452,
+   0.2006
+  ],
+  "minY_m": -0.2226,
+  "tris": 992,
+  "parts": [
+   "SM_Tool_VentLock",
+   "SM_Tool_VentLock_Outline",
+   "SM_Tool_VentLock_Status"
+  ]
+ },
+ "REF_VentHatch": {
+  "source": "Tools.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   1.4392,
+   1.4392,
+   0.128
+  ],
+  "minY_m": -0.7196,
+  "tris": 120,
+  "parts": [
+   "REF_VentHatch",
+   "REF_VentHatch_Outline"
+  ]
+ },
+ "SM_Barrier_3m": {
+  "source": "Barrier.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   3.0392,
+   5.2392,
+   1.5
+  ],
+  "minY_m": -0.0196,
+  "tris": 1296,
+  "parts": [
+   "SM_Barrier_3m",
+   "SM_Barrier_3m_Outline"
+  ]
+ },
+ "SM_BarrierLow_3m": {
+  "source": "Barrier.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   3.0392,
+   1.528,
+   1.4968
+  ],
+  "minY_m": -0.0196,
+  "tris": 1224,
+  "parts": [
+   "SM_BarrierLow_3m",
+   "SM_BarrierLow_3m_Outline"
+  ]
+ },
+ "SM_BarrierLowCab": {
+  "source": "Barrier.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.5392,
+   1.528,
+   1.4968
+  ],
+  "minY_m": -0.0196,
+  "tris": 204,
+  "parts": [
+   "SM_BarrierLowCab",
+   "SM_BarrierLowCab_Outline"
+  ]
+ },
+ "SM_Shelf": {
+  "source": "Shelf.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   3.8792,
+   5.2392,
+   1.4792
+  ],
+  "minY_m": -0.0196,
+  "tris": 996,
+  "parts": [
+   "SM_Shelf",
+   "SM_Shelf_Outline"
+  ]
+ },
+ "SM_BarrierLocker": {
+  "source": "Shelf.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.5392,
+   5.2392,
+   1.5
+  ],
+  "minY_m": -0.0196,
+  "tris": 216,
+  "parts": [
+   "SM_BarrierLocker",
+   "SM_BarrierLocker_Outline"
+  ]
+ },
+ "SM_Catwalk": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   11.056,
+   4.378,
+   2.456
+  ],
+  "minY_m": -0.028,
+  "tris": 672,
+  "parts": [
+   "SM_Catwalk",
+   "SM_Catwalk_Outline"
+  ]
+ },
+ "SM_Console": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   4.0392,
+   1.1196,
+   1.0396
+  ],
+  "minY_m": 0.0,
+  "tris": 304,
+  "parts": [
+   "SM_Console",
+   "SM_Console_Outline"
+  ]
+ },
+ "SM_Container": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   6.016,
+   2.416,
+   2.42
+  ],
+  "minY_m": -0.008,
+  "tris": 624,
+  "parts": [
+   "SM_Container",
+   "SM_Container_Outline"
+  ]
+ },
+ "SM_Desk": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.4392,
+   0.9441,
+   1.2392
+  ],
+  "minY_m": -0.0196,
+  "tris": 244,
+  "parts": [
+   "SM_Desk",
+   "SM_Desk_Outline"
+  ]
+ },
+ "SM_LabTable": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.4392,
+   0.9196,
+   1.2392
+  ],
+  "minY_m": 0.0,
+  "tris": 480,
+  "parts": [
+   "SM_LabTable",
+   "SM_LabTable_Outline"
+  ]
+ },
+ "SM_LabTank": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.656,
+   3.058,
+   2.656
+  ],
+  "minY_m": -0.028,
+  "tris": 532,
+  "parts": [
+   "SM_LabTank",
+   "SM_LabTank_Glass",
+   "SM_LabTank_Outline"
+  ]
+ },
+ "SM_LowBox": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   1.6168,
+   1.2084,
+   1.6184
+  ],
+  "minY_m": -0.0084,
+  "tris": 184,
+  "parts": [
+   "SM_LowBox",
+   "SM_LowBox_Outline"
+  ]
+ },
+ "SM_StairStep_1": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.0392,
+   0.728,
+   1.2392
+  ],
+  "minY_m": -0.0196,
+  "tris": 160,
+  "parts": [
+   "SM_StairStep_1",
+   "SM_StairStep_1_Outline"
+  ]
+ },
+ "SM_StairStep_2": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.0392,
+   1.428,
+   1.2392
+  ],
+  "minY_m": -0.0196,
+  "tris": 160,
+  "parts": [
+   "SM_StairStep_2",
+   "SM_StairStep_2_Outline"
+  ]
+ },
+ "SM_StairStep_3": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.0392,
+   2.128,
+   1.2392
+  ],
+  "minY_m": -0.0196,
+  "tris": 160,
+  "parts": [
+   "SM_StairStep_3",
+   "SM_StairStep_3_Outline"
+  ]
+ },
+ "SM_StairStep_4": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.0392,
+   2.828,
+   1.2392
+  ],
+  "minY_m": -0.0196,
+  "tris": 160,
+  "parts": [
+   "SM_StairStep_4",
+   "SM_StairStep_4_Outline"
+  ]
+ },
+ "SM_Tank": {
+  "source": "Structures.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   4.056,
+   4.0364,
+   4.056
+  ],
+  "minY_m": -0.028,
+  "tris": 760,
+  "parts": [
+   "SM_Tank",
+   "SM_Tank_Outline"
+  ]
+ },
+ "SM_CeilingLamp": {
+  "source": "Env.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.6915,
+   0.7159,
+   0.6858
+  ],
+  "minY_m": -0.7159,
+  "tris": 576,
+  "parts": [
+   "SM_CeilingLamp",
+   "SM_CeilingLamp_Outline",
+   "SM_CeilingLamp_Status"
+  ]
+ },
+ "SM_CeilingTruss": {
+  "source": "Env.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   24.1368,
+   0.828,
+   0.328
+  ],
+  "minY_m": -0.014,
+  "tris": 792,
+  "parts": [
+   "SM_CeilingTruss",
+   "SM_CeilingTruss_Outline"
+  ]
+ },
+ "SM_Pillar": {
+  "source": "Env.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   1.5392,
+   7.0392,
+   1.5392
+  ],
+  "minY_m": -0.0196,
+  "tris": 272,
+  "parts": [
+   "SM_Pillar",
+   "SM_Pillar_Outline"
+  ]
+ },
+ "SM_WallPost": {
+  "source": "Env.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.7192,
+   5.2392,
+   0.7192
+  ],
+  "minY_m": -0.0196,
+  "tris": 136,
+  "parts": [
+   "SM_WallPost",
+   "SM_WallPost_Outline"
+  ]
+ },
+ "SM_Collar": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.2082,
+   0.1095,
+   0.2401
+  ],
+  "minY_m": -0.0395,
+  "tris": 592,
+  "parts": [
+   "SM_Collar",
+   "SM_Collar_Outline",
+   "SM_Collar_Status"
+  ]
+ },
+ "SM_Collar_Open": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.2264,
+   0.079,
+   0.2245
+  ],
+  "minY_m": -0.0395,
+  "tris": 456,
+  "parts": [
+   "SM_Collar_Open",
+   "SM_Collar_Open_Outline"
+  ]
+ },
+ "SM_ExitDoor": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   3.256,
+   6.1336,
+   0.956
+  ],
+  "minY_m": -0.028,
+  "tris": 472,
+  "parts": [
+   "SM_ExitDoor",
+   "SM_ExitDoor_Door",
+   "SM_ExitDoor_Door_Outline",
+   "SM_ExitDoor_Outline",
+   "SM_ExitDoor_Status"
+  ]
+ },
+ "SM_Key_Collar": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.1244,
+   0.2476,
+   0.038
+  ],
+  "minY_m": 0.003,
+  "tris": 344,
+  "parts": [
+   "SM_Key_Collar",
+   "SM_Key_Collar_Outline"
+  ]
+ },
+ "SM_Key_Collar_Half": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.07,
+   0.114,
+   0.036
+  ],
+  "minY_m": 0.003,
+  "tris": 96,
+  "parts": [
+   "SM_Key_Collar_Half",
+   "SM_Key_Collar_Half_Outline"
+  ]
+ },
+ "SM_Key_Exit": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.184,
+   0.339,
+   0.064
+  ],
+  "minY_m": 0.0005,
+  "tris": 144,
+  "parts": [
+   "SM_Key_Exit",
+   "SM_Key_Exit_Outline"
+  ]
+ },
+ "SM_Key_Exit_Half": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.07,
+   0.1765,
+   0.046
+  ],
+  "minY_m": 0.0005,
+  "tris": 96,
+  "parts": [
+   "SM_Key_Exit_Half",
+   "SM_Key_Exit_Half_Outline"
+  ]
+ },
+ "SM_Vent": {
+  "source": "Gameplay2.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   2.0808,
+   7.0392,
+   1.4392
+  ],
+  "minY_m": -0.0196,
+  "tris": 168,
+  "parts": [
+   "SM_Vent",
+   "SM_Vent_Flap",
+   "SM_Vent_Flap_Outline",
+   "SM_Vent_Outline",
+   "SM_Vent_Status"
+  ]
+ },
+ "SM_Crate": {
+  "source": "Crate.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.9418,
+   0.532,
+   0.644
+  ],
+  "minY_m": 0.0,
+  "tris": 636,
+  "parts": [
+   "SM_Crate",
+   "SM_Crate_Lid",
+   "SM_Crate_Lid_Outline",
+   "SM_Crate_Outline",
+   "SM_Crate_Status"
+  ]
+ },
+ "SM_Mat_Battery": {
+  "source": "Materials.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.3261,
+   0.411,
+   0.3261
+  ],
+  "minY_m": -0.0126,
+  "tris": 428,
+  "parts": [
+   "SM_Mat_Battery",
+   "SM_Mat_Battery_Outline"
+  ]
+ },
+ "SM_Mat_Coil": {
+  "source": "Materials.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.481,
+   0.1668,
+   0.5247
+  ],
+  "minY_m": 0.0064,
+  "tris": 1488,
+  "parts": [
+   "SM_Mat_Coil",
+   "SM_Mat_Coil_Outline"
+  ]
+ },
+ "SM_Mat_LN2": {
+  "source": "Materials.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.2361,
+   0.597,
+   0.2361
+  ],
+  "minY_m": -0.0126,
+  "tris": 712,
+  "parts": [
+   "SM_Mat_LN2",
+   "SM_Mat_LN2_Outline"
+  ]
+ },
+ "SM_DirArrow": {
+  "source": "Arrow.blend",
+  "units": "m",
+  "sizeXYZ_m": [
+   0.8,
+   0.18,
+   1.1
+  ],
+  "minY_m": -0.09,
+  "tris": 44,
+  "parts": [
+   "SM_DirArrow"
+  ]
+ }
+}

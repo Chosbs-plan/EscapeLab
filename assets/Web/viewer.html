@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EscapeLab 에셋 뷰어</title>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+            "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}
+</script>
+<style>
+  :root { --bg:#1B1D20; --panel:#24272B; --ink:#E6E8EA; --dim:#9AA0A6; --acc:#4FD1C5; }
+  * { box-sizing:border-box; }
+  body { margin:0; height:100vh; display:flex; background:var(--bg); color:var(--ink); font:13px/1.4 system-ui, sans-serif; }
+  aside { width:260px; overflow:auto; background:var(--panel); padding:12px; flex:none; }
+  aside h2 { font-size:12px; color:var(--dim); margin:14px 0 6px; letter-spacing:.04em; }
+  aside button { display:block; width:100%; text-align:left; background:none; border:0; color:var(--ink); padding:4px 6px; border-radius:4px; cursor:pointer; font:inherit; }
+  aside button:hover { background:#2F3338; }
+  aside button.on { background:var(--acc); color:#10201E; }
+  main { flex:1; position:relative; min-width:0; }
+  canvas { display:block; width:100%; height:100%; }
+  #info { position:absolute; left:12px; top:10px; background:#1B1D20cc; padding:8px 10px; border-radius:6px; white-space:pre; font:12px/1.5 ui-monospace, monospace; }
+  #anims { position:absolute; left:12px; bottom:12px; display:flex; flex-wrap:wrap; gap:4px; max-width:calc(100% - 24px); }
+  #anims button { background:#2F3338; color:var(--ink); border:0; border-radius:4px; padding:5px 8px; cursor:pointer; font:inherit; }
+  #anims button.on { background:var(--acc); color:#10201E; }
+  #err { position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; padding:24px; color:#F2A7A7; }
+  @media (max-width:700px) { body { flex-direction:column; } aside { width:auto; height:38vh; } }
+</style>
+</head>
+<body>
+<aside id="list"></aside>
+<main>
+  <canvas id="c"></canvas>
+  <div id="info"></div>
+  <div id="anims"></div>
+  <div id="err">GLB 를 읽지 못했습니다.<br>이 폴더에서 로컬 서버를 띄워 열어 주세요 (README 참고).<br>file:// 로 직접 열면 브라우저가 막습니다.</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as Lab from './js/labkit-three.js';
+
+const CHARS = ['Raccoon', 'LabRat', 'Crow', 'Hound', 'Root'];
+const canvas = document.getElementById('c');
+const R = new THREE.WebGLRenderer({ canvas, antialias: true });
+R.setPixelRatio(Math.min(devicePixelRatio, 2));
+R.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#C9CDD1');
+scene.add(new THREE.HemisphereLight(0xdfe6ee, 0x5a6068, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.8);
+sun.position.set(4, 8, 5); sun.castShadow = true;
+sun.shadow.camera.left = sun.shadow.camera.bottom = -8; sun.shadow.camera.right = sun.shadow.camera.top = 8;
+sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshLambertMaterial({ color: '#9AA0A6' }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const grid = new THREE.GridHelper(60, 60 / Lab.STUD_M / 4, 0x7d838a, 0x8d939a);   // 4스터드 칸
+grid.position.y = 0.001; scene.add(grid);
+const cam = new THREE.PerspectiveCamera(35, 1, 0.02, 400);
+const ctl = new OrbitControls(cam, canvas);
+ctl.enableDamping = true;
+
+let current = null, char = null;
+const info = document.getElementById('info'), animBar = document.getElementById('anims');
+const list = document.getElementById('list');
+
+function frame(box) {
+  const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const r = Math.max(size.length() / 2, 0.3);
+  ctl.target.copy(c);
+  cam.position.copy(c).add(new THREE.Vector3(0.6, 0.35, 0.75).normalize().multiplyScalar(r / Math.sin(THREE.MathUtils.degToRad(17))));
+  ctl.update();
+}
+
+async function show(kind, name, btn) {
+  list.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
+  if (current) scene.remove(current);
+  char = null; animBar.innerHTML = '';
+  try {
+    if (kind === 'char') {
+      const gltf = await Lab.loadGLB(`models/characters/CH_${name}.glb`);
+      char = new Lab.LabCharacter(gltf);
+      current = char.root;
+      const m = char.meta;
+      for (const a of char.names) {
+        const b = document.createElement('button');
+        const am = m.anims[a];
+        b.textContent = `${a}${am.loop ? ' ↻' : ''}`;
+        b.title = `${am.frames}f · ${am.priority}${am.note ? ' · ' + am.note : ''}`;
+        b.onclick = () => { char.play(a); animBar.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
+        animBar.append(b);
+      }
+      animBar.firstChild.click();
+      info.textContent = `${m.classId} (${m.side})\n판정 키 ${m.judgeHeight_m} m\n부착 뼈 ${Object.keys(m.attachBones).join(', ')}`;
+      scene.add(current);
+      frame(new THREE.Box3(new THREE.Vector3(-0.6, 0, -0.6), new THREE.Vector3(0.6, m.judgeHeight_m, 0.6)));
+    } else {
+      const gltf = await Lab.loadGLB(`models/props/${name}.glb`);
+      current = Lab.styleLab(gltf.scene.clone());
+      const m = Lab.meta(gltf);
+      scene.add(current);
+      const box = new THREE.Box3().setFromObject(current);
+      const s = box.getSize(new THREE.Vector3());
+      info.textContent = `${name}\n${s.x.toFixed(2)} × ${s.y.toFixed(2)} × ${s.z.toFixed(2)} m (X×Y×Z)\n${m.tris} tris · 원본 ${m.source}`;
+      frame(box);
+    }
+    document.getElementById('err').style.display = 'none';
+  } catch (e) {
+    console.error(e);
+    document.getElementById('err').style.display = 'flex';
+  }
+}
+
+function section(title, items, kind) {
+  const h = document.createElement('h2'); h.textContent = title; list.append(h);
+  for (const n of items) {
+    const b = document.createElement('button');
+    b.textContent = n;
+    b.onclick = () => show(kind, n, b);
+    list.append(b);
+  }
+}
+section('캐릭터', CHARS, 'char');
+fetch('models/props/index.json').then(r => r.json()).then(idx => {
+  section('소품', Object.keys(idx).sort(), 'prop');
+}).catch(() => { document.getElementById('err').style.display = 'flex'; });
+show('char', 'Raccoon', list.querySelector('button'));
+
+const clock = new THREE.Clock();
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.floor(w * R.getPixelRatio()) || canvas.height !== Math.floor(h * R.getPixelRatio())) {
+    R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix();
+  }
+}
+R.setAnimationLoop(() => {
+  resize();
+  const dt = clock.getDelta();
+  if (char) char.update(dt);
+  ctl.update();
+  R.render(scene, cam);
+});
+</script>
+</body>
+</html>
