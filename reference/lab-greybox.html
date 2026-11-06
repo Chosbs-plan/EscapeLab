@@ -1,0 +1,1535 @@
+<title>연구소 그레이박스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* 레이아웃: 전체 화면 3D 뷰포트 위에 좌상단 HUD, 우측 생성·규칙 패널, 우하단 미니맵. 게임 화면이라 다크 단일 테마. */
+:root{
+  --bg:#0e1013;
+  --panel:rgba(17,20,24,.9);
+  --line:#2f353d;
+  --fg:#e6e7e8;
+  --mute:#959ca5;
+  --accent:#d9b23a;
+  --ok:#57c785;
+  --bad:#ef5a5f;
+  --f-ui:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:13px;line-height:1.45;overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:4px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.eyebrow,.lbl{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+h1{font-size:17px;font-weight:600;margin:2px 0 10px;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:11px;font-family:var(--f-mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+
+#hud{top:calc(12px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));width:min(300px,calc(100vw - 32px));padding:12px 14px}
+.modes{display:flex;gap:4px;margin-bottom:10px}
+.modes button{flex:1;min-width:0}
+button{font:inherit;font-size:12.5px;color:var(--fg);background:#1d2127;border:1px solid var(--line);border-radius:3px;padding:6px 8px;cursor:pointer}
+button:hover{border-color:#4a525c}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button[aria-pressed="true"]{background:var(--accent);color:#16130a;border-color:var(--accent);font-weight:600}
+#stat{font-family:var(--f-mono);font-size:11.5px;color:var(--fg);background:#0b0d10;border:1px solid var(--line);border-radius:3px;padding:6px 8px;margin-bottom:8px;font-variant-numeric:tabular-nums;min-height:2.9em;white-space:pre-line}
+details>summary{cursor:pointer;list-style:none;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸";display:inline-block;width:1em;color:var(--mute);transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+#keys summary{font-size:12px;color:var(--mute)}
+#keys dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0}
+#keys dt{font-family:var(--f-mono);font-size:11px;color:var(--accent);white-space:nowrap}
+#keys dd{margin:0;color:var(--fg);font-size:12px}
+
+#side{top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:300px;max-height:calc(100% - 12px - 262px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;padding:0}
+#side>summary{padding:10px 14px;font-weight:600;font-size:13px;position:sticky;top:0;background:#15181c;border-bottom:1px solid var(--line);z-index:1}
+#side section{padding:12px 14px;border-bottom:1px solid var(--line)}
+#side section:last-child{border-bottom:0}
+.cfg{display:grid;grid-template-columns:1fr 76px;gap:6px 10px;align-items:center}
+.cfg label{font-size:12px;color:var(--mute)}
+.cfg input{font:inherit;font-family:var(--f-mono);font-size:12px;color:var(--fg);background:#0b0d10;border:1px solid var(--line);border-radius:3px;padding:4px 6px;width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+.btns{display:flex;gap:6px;margin-top:10px}
+.btns button{flex:1}
+#rules,#metrics{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+#rules li,#metrics li{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:baseline;font-size:12px}
+.chip{font-family:var(--f-mono);font-size:10px;text-align:center;border-radius:2px;padding:1px 0;font-weight:500}
+.chip.ok{background:rgba(87,199,133,.16);color:var(--ok)}
+.chip.bad{background:rgba(239,90,95,.18);color:var(--bad)}
+.rv{font-family:var(--f-mono);font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums;text-align:right}
+.note{margin:10px 0 0;font-size:11.5px;color:var(--mute);line-height:1.5}
+.note b{color:var(--accent);font-weight:500}
+#legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:4px}
+#legend li{display:flex;gap:8px;align-items:center;font-size:12px}
+.sw{width:11px;height:11px;flex:none;border:1px solid #0b0c0e;border-radius:1px;box-shadow:0 0 0 1px rgba(255,255,255,.06)}
+
+#mini{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:200px;height:200px;border:1px solid var(--line);border-radius:4px;background:#14171b}
+#miniCap{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(222px + env(safe-area-inset-bottom,0px));width:200px;text-align:right}
+#prompt{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100vw - 260px));padding:7px 12px;font-size:12.5px;text-align:center;pointer-events:none}
+#prompt kbd{font-family:var(--f-mono);font-size:11px;color:var(--accent)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(16px + env(safe-area-inset-top,0px));padding:7px 14px;font-size:12.5px;border-color:#4e9f6e;pointer-events:none}
+#lockHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 14px;font-size:12.5px;pointer-events:none;color:var(--mute)}
+
+@media (max-width:760px){
+  #hud{width:min(260px,calc(100vw - 32px))}
+  #side{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:auto;left:max(16px,env(safe-area-inset-left,0px));width:calc(100vw - 32px - 150px - 10px);max-width:340px;max-height:46vh}
+  #mini{width:150px;height:150px}
+  #miniCap{width:150px;bottom:calc(172px + env(safe-area-inset-bottom,0px))}
+  #prompt{display:none}
+}
+@media (prefers-reduced-motion:reduce){details>summary::before{transition:none}}
+</style>
+
+<canvas id="c" tabindex="0" aria-label="연구소 3D 그레이박스 뷰"></canvas>
+
+<div id="hud" class="panel">
+  <div class="eyebrow">Lab greybox · v0.2</div>
+  <h1>연구소 그레이박스</h1>
+  <div class="modes" role="group" aria-label="시점">
+    <button id="m-overview" data-mode="overview" aria-pressed="true">전체 보기</button>
+    <button id="m-survivor" data-mode="survivor" aria-pressed="false">생존자</button>
+    <button id="m-tagger" data-mode="tagger" aria-pressed="false">술래</button>
+  </div>
+  <div id="stat" aria-live="off"></div>
+  <details id="keys" open>
+    <summary>조작</summary>
+    <dl>
+      <dt>클릭 / 드래그</dt><dd>시점 회전 (Esc 해제)</dd>
+      <dt>WASD</dt><dd>이동</dd>
+      <dt>Shift</dt><dd>달리기 (생존자)</dd>
+      <dt>Space</dt><dd>점프</dd>
+      <dt>C</dt><dd>슬라이딩 (달리는 중)</dd>
+      <dt>F · Q/E</dt><dd>벤트 진입·이동 / 출구 선택 (술래)</dd>
+      <dt>1 · 2 · V</dt><dd>생존자 · 술래 · 전체 보기</dd>
+      <dt>R</dt><dd>새 시드로 맵 재생성</dd>
+      <dt>G</dt><dd>같은 시드로 이전(v1)/이후(v2) 전환</dd>
+    </dl>
+  </details>
+</div>
+
+<details id="side" class="panel" open>
+  <summary>맵 생성 · 보장 규칙 · 범례</summary>
+  <section>
+    <h2>구획 규칙 · 전후 비교</h2>
+    <div class="modes" role="group" aria-label="생성 규칙 버전">
+      <button id="v-1" data-v="1" aria-pressed="false">이전 (v1)</button>
+      <button id="v-2" data-v="2" aria-pressed="true">이후 (v2)</button>
+    </div>
+    <ul id="metrics"></ul>
+    <p class="note" id="metricNote"></p>
+  </section>
+  <section>
+    <h2>생성 설정</h2>
+    <div class="cfg">
+      <label for="seed">시드</label><input id="seed" type="number" inputmode="numeric">
+      <label for="cfg-pmin">프린터 간 최소 거리 (m)</label><input id="cfg-pmin" type="number" min="0" max="40" step="1">
+      <label for="cfg-vmin">프린터·탈출구 ↔ 벤트 (m)</label><input id="cfg-vmin" type="number" min="0" max="40" step="1">
+      <label for="cfg-shelf">슬라이딩 선반 최소</label><input id="cfg-shelf" type="number" min="0" max="20" step="1">
+      <label for="cfg-crates">플라스틱 상자 수</label><input id="cfg-crates" type="number" min="1" max="40" step="1">
+    </div>
+    <div class="btns"><button id="b-gen">이 값으로 생성</button><button id="b-new">새 시드</button></div>
+  </section>
+  <section>
+    <h2>보장 규칙</h2>
+    <ul id="rules"></ul>
+    <p class="note" id="ruleNote"></p>
+  </section>
+  <section>
+    <h2>범례 · 모델 교체 슬롯</h2>
+    <ul id="legend"></ul>
+  </section>
+</details>
+
+<div id="miniCap" class="lbl">탑뷰 · 북쪽 위</div>
+<canvas id="mini" aria-label="미니맵"></canvas>
+<div id="prompt" class="panel" hidden></div>
+<div id="toast" class="panel" hidden></div>
+<div id="lockHint" class="panel" hidden>클릭하면 마우스로 시점을 돌립니다</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s);
+
+/* =========================================================
+   1. 튜닝 변수 — 기획서 수치. 여기만 고치면 전체에 반영
+   ========================================================= */
+const CFG={
+  seed:1000, cell:24, grid:3,
+  printers:5, exits:2, crates:16, players:2, ventGap:10, /* 벤트는 셀마다 1개 → 9개 */
+  printerMinDist:18, ventMinDist:12, minShelves:6, exitMinDist:30,
+  crateMinDist:5, cratePrinterRadius:12, cratePrinterMin:1, cratePrinterMax:3, crateVentMin:4, toolMinDist:10,
+  g:20, step:0.35,
+  sR:0.38, sH:1.7, slideH:0.8, sWalk:4.6, sSprint:5.8, slideMin:5.2, slideSpeed:7.8, slideEnd:5.0, slideTime:0.75, crawl:2.6, sJump:6.0,
+  tR:0.42, tH:1.95, tSpeed:6.2, tJump:11.8, ventSpeed:16,
+  alertSec:10, pingInterval:8, pingFuzz:6,
+  shelfGap:0.95, shelfLen:3.6, shelfDepth:1.4, barrierH:5.2, barrierClear:2.5, roomWall:5.2,
+  stationWallH:6.0, stationLowClear:1.2, stationGap:2.0, doorClear:3.5, exitFrontClear:3.0, printerH:1.45,
+  /* v2 구획 규칙: 셀 경계 이음부 + 관통선 금지 + 시야선 검사 */
+  v2:true, partWallH:6.5, doorW:3.2, wideW:9, maxOpenEdges:2, oppGap:1.0,
+  sightMax:28, maxBreakers:16, breakerLen:3.0, breakerT:0.6,
+  /* 숨김 배치: 노출도 = 16방향 눈높이 시야 평균(20m 상한) ÷ 20. 낮을수록 숨겨짐 */
+  hidePlace:true, expoR:20, printerVentMax:20, crateUnitMin:6, cratePerCellMax:3
+};
+const HALF=CFG.cell*CFG.grid/2;
+
+/* =========================================================
+   2. 색 구분 — 플레이스홀더 팔레트
+   ========================================================= */
+const COL={
+  bg:0x0e1013, floor_hangar:0x3b4047, floor_rack:0x42454b, floor_lab:0x384241, floor_room:0x4a4540, seam:0x24282d, lane:0x5e5745,
+  wall:0x5f666e, struct:0x6d747c, pillar:0x7b828a, block:0x7a3b37, lab:0x8a9fa3,
+  shelf:0xc9b98f, shelfBox:0x9c8e6a, barrier:0x56616f, barrierDark:0x444d59, table:0x7d7468, printer:0x3fc8c0, printerTop:0xa6ece6, crate:0xd9b23a,
+  exit:0xe5484d, vent:0x4e9f6e, duct:0x3c4943, battery:0xf08a24, coil:0x9d6bf0, ln2:0x8ec5ff,
+  survivor:0xf2f2ee, tagger:0xd63a8f, visor:0x1b1d21, lamp:0xfff0cc
+};
+const hex=n=>'#'+n.toString(16).padStart(6,'0');
+
+/* 범례 겸 모델 교체 슬롯 목록. slot 이름이 나중에 GLB를 꽂을 키가 됨 */
+const LEGEND=[
+  ['survivor','생존자 (목줄 착용)','survivor'],['tagger','술래','tagger'],
+  ['printer','3D 프린터','printer'],['table','프린터 받침대 (책상 0.85m · 낮은 받침대 0.6m, 필수)','printer_base'],['crate','플라스틱 상자','crate'],
+  ['battery','축전지 → 테이저 트랩','tool_battery'],['coil','자성 코일 → 벤트 락','tool_coil'],['ln2','액체질소 캡슐 → 냉각 수류탄','tool_ln2'],
+  ['exit','탈출구 + 경고등','exit'],['vent','벤트 출구 · 덕트','vent'],
+  ['shelf','슬라이딩 선반 (생존자만 밑 통과)','shelf'],['barrier','장벽 · 스테이션 벽 (술래도 못 넘음)','barrier'],['block','점프 구조물 · 컨테이너','block'],
+  ['struct','캣워크 · 계단 · 콘솔','struct'],['lab','실험 탱크','lab_tank'],['wall','벽 · 기둥','wall']
+];
+const TOOL_LABEL={battery:'축전지',coil:'자성 코일',ln2:'액체질소 캡슐'};
+const TYPE_LABEL={hangar:'격납고',rack:'랙 구역',lab:'실험실',room:'방'};
+
+/* =========================================================
+   3. 모듈 템플릿 — 셀(24×24m) 로컬 좌표. 게임마다 랜덤 회전·조합
+   ========================================================= */
+const bx=(x,z,w,d,y0,h,m)=>({shape:'box',x,z,w,d,y0,h,m});
+const cy=(x,z,r,y0,h,m)=>({shape:'cyl',x,z,w:r*2,d:r*2,y0,h,m});
+const sh=(x,z,w,d)=>({x,z,w,d});
+const sl=(t,x,z)=>({t,x,z});
+/* 선반 장벽: 짧은 선반 하나 + 양옆 높은 장벽. 생존자는 선반 밑으로, 술래는 끝을 돌아서 */
+function bar(T,x,z,along,fa,fb){
+  const id=T.lid++, L=CFG.shelfLen, D=CFG.shelfDepth, FD=D+0.2, H=CFG.barrierH;
+  if(along==='x'){
+    T.SH.push(Object.assign(sh(x,z,L,D),{lid:id}));
+    T.S.push(Object.assign(bx(x-L/2-fa/2,z,fa,FD,0,H,'barrier'),{lid:id}),Object.assign(bx(x+L/2+fb/2,z,fb,FD,0,H,'barrier'),{lid:id}));
+  } else {
+    T.SH.push(Object.assign(sh(x,z,D,L),{lid:id}));
+    T.S.push(Object.assign(bx(x,z-L/2-fa/2,FD,fa,0,H,'barrier'),{lid:id}),Object.assign(bx(x,z+L/2+fb/2,FD,fb,0,H,'barrier'),{lid:id}));
+  }
+}
+
+/* 선반 구조물: 허브(1.6×1.6 장벽)에서 팔을 뻗는 ㄱ·ㄴ(L) · ㅗ(T) · ㅡ(I)
+   팔 = [선반 3.6m + 끝 장벽] 또는 [장벽]. 구조물마다 선반 1~2개, 선반 양옆 2.4m는 슬라이딩 레인으로 비워 둠 */
+const SHELF_KIND_LABEL={L:'ㄱ·ㄴ',T:'ㅗ',I:'ㅡ'};
+function unitPieces(kind,R){
+  const L=CFG.shelfLen, D=CFG.shelfDepth, FD=D+0.2, h=FD/2, P=[];
+  const cap=()=>2.2+R()*1.4, stem=()=>3.0+R()*1.6; // 끝 장벽 2.2~3.6m → 술래 우회 1.2~1.7초 (기존 막대와 같은 범위)
+  const arm=(dx,dz,spec)=>{let s=h;for(const [t,len0] of spec){const len=t==='shelf'?L:len0,c=s+len/2,x=dx*c,z=dz*c,hz=dx!==0;
+    P.push(t==='shelf'?{t,x,z,w:hz?L:D,d:hz?D:L}:{t,x,z,w:hz?len:FD,d:hz?FD:len});s+=len;}};
+  if(kind==='I'){const fa=2.2+R()*1.4,fb=2.2+R()*1.4;
+    P.push({t:'shelf',x:0,z:0,w:L,d:D},{t:'barrier',x:-L/2-fa/2,z:0,w:fa,d:FD},{t:'barrier',x:L/2+fb/2,z:0,w:fb,d:FD}); return P;}
+  P.push({t:'barrier',x:0,z:0,w:FD,d:FD,hub:true});
+  if(kind==='L'){
+    if(R()<0.5){arm(1,0,[['shelf'],['barrier',cap()]]);arm(0,1,[['barrier',stem()]]);}
+    else {arm(1,0,[['barrier',stem()]]);arm(0,1,[['shelf'],['barrier',cap()]]);}
+  } else { // T(ㅗ): 가로 두 팔 + 위로 기둥
+    arm(-1,0,[['shelf'],['barrier',cap()]]);
+    if(R()<0.5) arm(1,0,[['shelf'],['barrier',cap()]]); else arm(1,0,[['barrier',stem()]]);
+    arm(0,-1,[['barrier',stem()]]);
+  }
+  return P;
+}
+const ovl=(a,b,m=0)=>Math.abs(a.x-b.x)<(a.w+b.w)/2+m-0.001&&Math.abs(a.z-b.z)<(a.d+b.d)/2+m-0.001;
+const laneOf=p=>p.w>p.d?{x:p.x,z:p.z,w:p.w-0.2,d:p.d+4.8}:{x:p.x,z:p.z,w:p.w+4.8,d:p.d-0.2};
+/* 앵커 순서대로 종류·회전을 바꿔 가며 맞춰 봄. 조건: 셀 안(±9.6) · 기존 물체와 2.6m(술래 등반·통로) · 다른 구조물과 2.8m · 레인 비어 있음 */
+function placeUnits(T,R,anchors,n,kinds,obst){
+  const done=[];
+  for(const [ax,az] of anchors){
+    if(done.length>=n) break;
+    for(let tr=0;tr<10;tr++){
+      const kind=kinds[Math.floor(R()*kinds.length)], rot=Math.floor(R()*4), jx=(R()-0.5)*2, jz=(R()-0.5)*2;
+      const ps=unitPieces(kind,R).map(p=>{let x=p.x,z=p.z,w=p.w,d=p.d;for(let k=0;k<rot;k++){const t=x;x=-z;z=t;const tw=w;w=d;d=tw;}return Object.assign({},p,{x:x+ax+jx,z:z+az+jz,w,d});});
+      const lanes=ps.filter(p=>p.t==='shelf').map(laneOf);
+      if(ps.some(p=>Math.abs(p.x)+p.w/2>9.6||Math.abs(p.z)+p.d/2>9.6)) continue; // 옆 셀 발판과 2.5m 확보
+      if(lanes.some(l=>Math.abs(l.x)+l.w/2>11.4||Math.abs(l.z)+l.d/2>11.4)) continue;
+      if(ps.some(p=>obst.some(o=>gap(p,o)<2.6))) continue;
+      if(ps.some(p=>done.some(u=>u.ps.some(q=>gap(p,q)<2.8)))) continue;
+      if(lanes.some(l=>obst.some(o=>ovl(l,o))||ps.some(p=>p.t!=='shelf'&&ovl(l,p))||done.some(u=>u.ps.concat(u.lanes).some(q=>ovl(l,q))))) continue;
+      if(done.some(u=>u.lanes.some(l=>ps.some(p=>ovl(l,p))))) continue;
+      done.push({kind,ps,lanes}); break;
+    }
+  }
+  // 구조물 옆 상자 자리: 장벽 조각(허브 제외) 양옆 0.75m, 두 팔 사이 안쪽 모서리면 pocket
+  for(const u of done){
+    u.slots=[];
+    for(const p of u.ps){ if(p.t==='shelf'||p.hub) continue;
+      const long=p.w>p.d, len=long?p.w:p.d, half=(long?p.d:p.w)/2+0.75;
+      const us=len>2.5?[0,-(len/2-0.7),len/2-0.7]:[0];
+      for(const u0 of us) for(const sd of [-1,1]){
+        const q=long?{x:p.x+u0,z:p.z+sd*half}:{x:p.x+sd*half,z:p.z+u0};
+        if(u.ps.some(o=>ptRect(q,o)<0.7)||u.lanes.some(l=>ptRect(q,l)<0.6)||Math.abs(q.x)>10.6||Math.abs(q.z)>10.6) continue;
+        const near=u.ps.filter(o=>o.t!=='shelf'&&ptRect(q,o)<2.6).length;
+        u.slots.push({t:'crate',x:q.x,z:q.z,unit:u.kind,pocket:near>=2});
+      }
+    }
+  }
+  for(const u of done){
+    const id=T.lid++, H=CFG.barrierH;
+    for(const p of u.ps){ if(p.t==='shelf') T.SH.push(Object.assign(sh(p.x,p.z,p.w,p.d),{lid:id,unit:u.kind}));
+      else T.S.push(Object.assign(bx(p.x,p.z,p.w,p.d,0,H,'barrier'),{lid:id,unit:u.kind,hub:!!p.hub})); }
+  }
+  return done;
+}
+/* 구조물·레인과 겹치는 상자·벤트·도구 슬롯은 버림 */
+function keepSlots(SL,units){
+  const ps=[].concat(...units.map(u=>u.ps)), ls=[].concat(...units.map(u=>u.lanes));
+  const kept=SL.filter(s=>s.t==='door'||(ps.every(p=>ptRect(s,p)>=1.3)&&ls.every(l=>ptRect(s,l)>=0.6)));
+  // 구조물 옆 상자 자리 추가 (다른 구조물·레인과 안 겹치는 것만)
+  for(const u of units) for(const q of u.slots||[]) if(units.every(v=>v===u||(v.ps.every(p=>ptRect(q,p)>=1.3)&&v.lanes.every(l=>ptRect(q,l)>=0.6)))) kept.push(q);
+  return kept;
+}
+
+const TEMPL={
+  hangar(R){
+    const S=[],SH=[],SL=[];
+    [[-7,-7],[7,-7],[-7,7],[7,7]].forEach(([x,z])=>S.push(cy(x,z,0.85,0,9.4,'pillar')));
+    S.push(cy(2.5,-2.5,1.5,0,3.0,'block'),cy(5.3,-0.9,1.0,0,2.2,'block'),bx(-1,6.5,6,2.6,0,2.6,'block'),
+      bx(-8,-1,3,7,2.6,0.3,'struct'),bx(-3,-8,1.6,1.6,0,0.8,'block'),bx(8.5,1.5,1.6,1.6,0,0.8,'block'));
+    for(let i=0;i<8;i++) S.push(bx(-6.25+i*0.5,-3.6,0.5,1.6,0,2.9*(8-i)/9,'struct'));
+    // 빈 바닥 한 곳에 선반 구조물 1개 (들어갈 자리가 없으면 생략)
+    const T={S,SH,lid:0};
+    const U=placeUnits(T,R,[[6,-6],[5,6.5],[0,-7.5],[-5,8],[8,1]],1,['L','T'],S.slice());
+    SL.push(
+      sl('crate',0,-9.8),sl('crate',-10,5),sl('crate',10.2,6),sl('crate',4.2,3),sl('crate',-4,2),sl('crate',9.5,-9.8),sl('crate',-10.2,-9.8),sl('crate',-1,10.4),
+      sl('crate',10.2,-4),sl('crate',3,10.2),
+      sl('vent',-4.5,-10.6),sl('vent',11,-1.2),sl('vent',10.6,10.6),sl('tool',6,-5.4),sl('tool',-9.8,9.8),sl('tool',9.6,-1));
+    return {S,SH,SL:keepSlots(SL,U),L:[0,0,7]};
+  },
+  rack(R){
+    // 랙 구역: 평행 선반 3줄 대신 ㄱ·ㄴ·ㅗ 구조물 2~3개를 엇갈리게
+    const T={S:[],SH:[],lid:0},S=T.S,SH=T.SH,SL=[];
+    S.push(bx(-9.6,-9,1.6,1.6,0,0.8,'block'),bx(10.6,9.5,2,4,0,2.6,'block'));
+    const A=[[-5,-4.5],[5,-5],[-4.5,5],[5,4.5],[0,0],[-6,0],[6,0]];
+    for(let i=A.length-1;i>0;i--){const j=Math.floor(R()*(i+1));const t=A[i];A[i]=A[j];A[j]=t;}
+    const U=placeUnits(T,R,A,3,['L','T'],S.slice());
+    SL.push(
+      sl('crate',-3,0),sl('crate',3,-3.5),sl('crate',3,4),sl('crate',-3,6),sl('crate',-9.6,3),sl('crate',9.6,-9.6),sl('crate',-9.6,-4),sl('crate',0,-10.4),
+      sl('crate',0,10.4),sl('crate',-10.4,10.4),sl('crate',10.4,-3),sl('crate',-6,-10.4),sl('crate',6,10.4),sl('crate',0,-3),
+      sl('vent',-10.4,9.6),sl('vent',10.4,1),sl('vent',-10.6,-6.5),sl('vent',3,-10.6),sl('tool',-3,-5),sl('tool',3,0.5),sl('tool',-10.4,0),sl('tool',8,-10.4));
+    return {S,SH,SL:keepSlots(SL,U),L:[0,0,7]};
+  },
+  lab(R){
+    const T={S:[],SH:[],lid:0},S=T.S,SH=T.SH,SL=[];
+    S.push(cy(-8,-8,0.9,0,2.6,'lab'),cy(-5.2,-8,0.9,0,2.6,'lab'),cy(-2.4,-8,0.9,0,2.6,'lab'),
+      bx(8.6,-4,1.2,6,0,1.1,'struct'),bx(4,-1,3,1.6,0,0.9,'block'),cy(6,6,0.85,0,9.4,'pillar'),cy(-8,8,0.85,0,9.4,'pillar'));
+    const U=placeUnits(T,R,[[-2,4],[-1,3],[0,5],[-3,2],[2,4]],1,['L','T'],S.slice());
+    if(!U.length) bar(T,-2,4,'x',2.4+R()*1.2,2.4+R()*1.2);
+    SL.push(
+      sl('crate',-9.8,-3.5),sl('crate',4,-8.6),sl('crate',10,3),sl('crate',1,9),sl('crate',-4.5,8),sl('crate',5,2),sl('crate',-3,0.5),sl('crate',10,-10),
+      sl('crate',-10,10),sl('crate',8,10),
+      sl('vent',2,-10.6),sl('vent',-10.6,4.6),sl('vent',10.6,7),sl('tool',8,8.6),sl('tool',-6,1),sl('tool',-10,-1));
+    return {S,SH,SL:keepSlots(SL,U),L:[0,0,7]};
+  },
+  room(R,RV){
+    const T={S:[],SH:[],lid:0},S=T.S,SH=T.SH,SL=[],h=CFG.roomWall,t=0.4,a=8,dw=1.4;
+    // 마주보는 두 문: v1은 둘 다 가운데(관통 직선), v2는 4m 이상 엇갈림
+    const doorWall=(o,z)=>{const l=o-dw-(-a-0.2), r=a+0.2-(o+dw);
+      S.push(bx(-a-0.2+l/2,z,l,t,0,h,'wall'),bx(a+0.2-r/2,z,r,t,0,h,'wall')); SL.push(sl('door',o,z));};
+    let oN=0,oS=0;
+    if(CFG.v2){const op=[-4,0,4]; oN=op[Math.floor(RV()*3)]; do{oS=op[Math.floor(RV()*3)];}while(Math.abs(oS-oN)<4);}
+    doorWall(oN,-a); doorWall(oS,a);
+    S.push(bx(-a,0,t,16.4,0,h,'wall'));
+    if(R()<0.6){ S.push(bx(a,-4.8,t,6.8,0,h,'wall'),bx(a,4.8,t,6.8,0,h,'wall')); SL.push(sl('door',a,0)); }
+    else S.push(bx(a,0,t,16.4,0,h,'wall'));
+    bar(T,-4,0,'z',2.0+R()*0.8,2.0+R()*0.8);
+    S.push(bx(4,-5,3,1.4,0,0.9,'block'));
+    SL.push(
+      sl('crate',-6.4,-6.4),sl('crate',6.4,-6.6),sl('crate',-6.4,6.4),sl('crate',10.2,-10.2),sl('crate',-10.2,10.2),sl('crate',10.2,10.2),
+      sl('vent',6.2,6.2),sl('vent',-10.6,-4),sl('tool',-6.4,-2),sl('tool',10.4,0));
+    return {S,SH,SL,L:[0,0,3.6]};
+  }
+};
+
+/* =========================================================
+   4. 생성 + 보장 규칙
+   ========================================================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+const minPair=a=>{let m=Infinity;for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)m=Math.min(m,dist(a[i],a[j]));return m;};
+const minTo=(a,b)=>{let m=Infinity;for(const x of a)for(const y of b)m=Math.min(m,dist(x,y));return m;};
+const fm=v=>isFinite(v)?v.toFixed(1)+'m':'—';
+
+function clearXZ(x,z,r,solids,shelves){
+  for(const s of solids){ if(s.y0>2.6) continue; if(Math.abs(x-s.x)<s.w/2+r && Math.abs(z-s.z)<s.d/2+r) return false; }
+  for(const s of shelves){ if(Math.abs(x-s.x)<s.w/2+r && Math.abs(z-s.z)<s.d/2+r) return false; }
+  return true;
+}
+
+/* 프린터 스테이션: 받침대(작업대·카트) 위 프린터 + ㄱ자(L) 또는 ㅗ자(T) 벽. 프린터 위치가 로컬 원점 */
+const STN={
+  L:{walls:[[0.2,-0.9,4.8,0.4],[-2.2,1.1,0.4,4.0]],table:[0,0,2.2,1.4]},
+  T:{walls:[[-2,-0.9,8,0.4],[-2,0.8,0.4,3.0]],table:[0,0,2.2,1.4]}
+};
+const gap=(a,b)=>Math.hypot(Math.max(0,Math.abs(a.x-b.x)-(a.w+b.w)/2),Math.max(0,Math.abs(a.z-b.z)-(a.d+b.d)/2));
+const ptRect=(p,r)=>Math.hypot(Math.max(0,Math.abs(p.x-r.x)-r.w/2),Math.max(0,Math.abs(p.z-r.z)-r.d/2));
+function stationAt(type,px,pz,rot,th){
+  const tr=a=>{let [x,z,w,d]=a;for(let k=0;k<rot;k++){const t=x;x=-z;z=t;const tw=w;w=d;d=tw;}return {x:px+x,z:pz+z,w,d};};
+  const walls=STN[type].walls.map(tr), table=tr(STN[type].table);
+  let x0=Infinity,x1=-Infinity,z0=Infinity,z1=-Infinity;
+  for(const r of walls.concat([table])){x0=Math.min(x0,r.x-r.w/2);x1=Math.max(x1,r.x+r.w/2);z0=Math.min(z0,r.z-r.d/2);z1=Math.max(z1,r.z+r.d/2);}
+  return {type,rot,x:px,z:pz,walls,table,th,bbox:{x:(x0+x1)/2,z:(z0+z1)/2,w:x1-x0,d:z1-z0},pw:rot%2?1.2:1.6,pd:rot%2?1.6:1.2};
+}
+
+/* 4-1. v2 셀 경계 이음부
+   경계 12개 = 무작위 신장 트리(반드시 통행) + 나머지 중 1~2개 폐쇄 → 루프 2~3개
+   통행 경계 타입: 문 1개 · 문 2개 · 넓은 개구부 · 완전 개방(최대 2)
+   관통선 금지: 한 셀의 마주보는 경계 개구부끼리 경계 방향으로 겹치지 않음 */
+const EDGE_OPTS={
+  door1:[-8,-6,-3,0,3,6,8].map(c=>[[c,0]]),
+  door2:[[-8,0],[-8,6],[-6,6],[-6,0],[0,6],[0,8],[-6,8],[-8,8]].map(([a,b])=>[[a,0],[b,0]]),
+  wide:[-6,-4,0,4,6].map(c=>[[c,1]]),
+  open:[[[0,2]]]
+};
+const EDGE_LABEL={door1:'문 1',door2:'문 2',wide:'넓은 개구부',open:'완전 개방',closed:'폐쇄'};
+function buildEdges(R,ri,shuffle,cells,solids,shelves,slots){
+  const G=CFG.grid,C=CFG.cell,N=G*G,edges=[],hc=C/2;
+  for(let r=0;r<G;r++)for(let c=0;c<G-1;c++){const a=r*G+c;edges.push({a,b:a+1,ax:'x',x:cells[a].cx+hc,z:cells[a].cz});}
+  for(let r=0;r<G-1;r++)for(let c=0;c<G;c++){const a=r*G+c;edges.push({a,b:a+G,ax:'z',x:cells[a].cx,z:cells[a].cz+hc});}
+  const wOf=k=>k===0?CFG.doorW:k===1?CFG.wideW:C;
+  const ops=(o)=>o.map(([c,k])=>({c,w:wOf(k)}));
+  // 신장 트리
+  const par=[...Array(N).keys()], find=i=>par[i]===i?i:(par[i]=find(par[i]));
+  const ids=shuffle(edges.map((_,i)=>i)), tree=new Set();
+  for(const i of ids){const ra=find(edges[i].a),rb=find(edges[i].b);if(ra!==rb){par[ra]=rb;tree.add(i);}}
+  const rest=ids.filter(i=>!tree.has(i)), nClose=1+ri(2);
+  rest.forEach((i,k)=>{if(k<nClose) edges[i].type='closed';});
+  // 마주보는 경계
+  const opp=e=>edges.filter(f=>f!==e&&f.ax===e.ax&&(f.b===e.a||f.a===e.b));
+  const conflict=(A,B)=>{
+    if(A.type==='open'&&B.type==='open') return true;
+    if(A.type==='open'||B.type==='open') return A.type==='wide'||B.type==='wide';
+    for(const p of A.ops) for(const q of B.ops) if(Math.abs(p.c-q.c)<(p.w+q.w)/2+CFG.oppGap) return true;
+    return false;
+  };
+  const pt=(e,o,n)=>e.ax==='x'?{x:e.x+n,z:e.z+o}:{x:e.x+o,z:e.z+n};
+  const clearOpening=(e,p)=>{
+    const us=p.w>4?[p.c-p.w/2+1.6,p.c,p.c+p.w/2-1.6]:[p.c];
+    for(const u of us) for(const n of [-1.7,1.7]){const q=pt(e,u,n); if(!clearXZ(q.x,q.z,0.9,solids,shelves)) return false;}
+    return true;
+  };
+  // 완전 개방은 두 셀이 48m 홀이 되어 차단물로도 못 끊음 → 제외 (셀 병합은 전용 대형 템플릿으로 따로)
+  const pick=()=>{const r=R();return r<0.6?'door1':r<0.82?'door2':'wide';};
+  let openN=0;
+  for(const e of shuffle(edges.filter(e=>e.type!=='closed'))){
+    let first=pick(); if(first==='open'&&openN>=CFG.maxOpenEdges) first='door1';
+    const types=[first].concat(['door1','door2','wide'].filter(t=>t!==first));
+    let done=false;
+    for(const t of types){
+      for(const o of shuffle(EDGE_OPTS[t].slice())){
+        const cand={type:t,ops:ops(o)};
+        if(opp(e).some(f=>f.ops&&conflict(cand,f))) continue;
+        if(t!=='open'&&!cand.ops.every(p=>clearOpening(e,p))) continue;
+        e.type=t; e.ops=cand.ops; done=true; break;
+      }
+      if(done) break;
+    }
+    if(!done){e.type='closed';e.fail=true;}
+    if(e.type==='open') openN++;
+  }
+  // 벽 · 문틀 · 문 슬롯
+  const H=CFG.partWallH, T=0.4;
+  for(const e of edges){
+    const op=e.type==='closed'?[]:e.ops.slice().sort((p,q)=>p.c-q.c);
+    let s=-hc-0.2;
+    const seg=(a,b)=>{if(b-a<0.05) return; const m=(a+b)/2,l=b-a; const q=pt(e,m,0);
+      solids.push(Object.assign(e.ax==='x'?bx(q.x,q.z,T,l,0,H,'wall'):bx(q.x,q.z,l,T,0,H,'wall'),{edge:true,shutter:e.type==='closed'}));};
+    for(const p of op){
+      seg(s,p.c-p.w/2); s=p.c+p.w/2;
+      const q=pt(e,p.c,0);
+      if(p.w<=CFG.doorW+0.01) solids.push(Object.assign(e.ax==='x'?bx(q.x,q.z,T,p.w,3.4,H-3.4,'wall'):bx(q.x,q.z,p.w,T,3.4,H-3.4,'wall'),{edge:true,lintel:true}));
+      const us=p.w>4?[p.c-p.w/2+2,p.c,p.c+p.w/2-2]:[p.c];
+      for(const u of us){const d=pt(e,u,0); slots.push({t:'door',x:d.x,z:d.z});}
+    }
+    seg(s,hc+0.2);
+  }
+  // 셀 그래프: 연결 · 루프 · 막다른 셀
+  const pass=edges.filter(e=>e.type!=='closed');
+  const p2=[...Array(N).keys()], f2=i=>p2[i]===i?i:(p2[i]=f2(p2[i]));
+  pass.forEach(e=>{p2[f2(e.a)]=f2(e.b);});
+  const comps=new Set([...Array(N).keys()].map(f2)).size;
+  const deg=Array(N).fill(0); pass.forEach(e=>{deg[e.a]++;deg[e.b]++;});
+  return {edges,connected:comps===1,loops:pass.length-N+comps,deadEnds:deg.filter(d=>d<=1).length,failed:edges.filter(e=>e.fail).length};
+}
+
+function tryLayout(seed,salt=0){
+  const R=mulberry32(seed), ri=n=>Math.floor(R()*n);
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=ri(i+1);const t=a[i];a[i]=a[j];a[j]=t;}return a;};
+  // v2 전용 난수는 따로 — 같은 시드면 v1과 모듈 배치·회전이 같아서 전후 비교가 공정함
+  const RV=mulberry32((seed^0x51ed27^Math.imul(salt,0x9e3779b1))>>>0), riV=n=>Math.floor(RV()*n);
+  const shuffleV=a=>{for(let i=a.length-1;i>0;i--){const j=riV(i+1);const t=a[i];a[i]=a[j];a[j]=t;}return a;};
+  const G=CFG.grid,C=CFG.cell,N=G*G;
+  const order=shuffle([...Array(N).keys()]);
+  const types=Array(N);
+  types[order[0]]='room'; types[order[1]]='room';
+  let p=2;
+  const needRack=Math.max(0,Math.ceil((CFG.minShelves-2)/3));
+  for(let i=0;i<needRack&&p<N;i++) types[order[p++]]='rack';
+  for(;p<N;p++){const r=R(); types[order[p]]=r<0.42?'hangar':r<0.72?'lab':'rack';}
+
+  const cells=[],solids=[],shelves=[],slots=[],lights=[];
+  for(let i=0;i<N;i++){
+    const col=i%G,row=Math.floor(i/G),cx=(col-(G-1)/2)*C,cz=(row-(G-1)/2)*C,rot=ri(4);
+    const t=TEMPL[types[i]](R,RV);
+    cells.push({i,col,row,cx,cz,rot,type:types[i]});
+    const tf=o=>{let x=o.x,z=o.z,w=o.w,d=o.d;for(let k=0;k<rot;k++){const tx=x;x=-z;z=tx;const tw=w;w=d;d=tw;}return Object.assign({},o,{x:cx+x,z:cz+z,w,d,cell:i,lid:o.lid===undefined?undefined:i*10+o.lid});};
+    t.S.forEach(o=>solids.push(tf(o)));
+    t.SH.forEach(o=>shelves.push(tf(o)));
+    t.SL.forEach(o=>slots.push(tf(o)));
+    const l=tf({x:t.L[0],z:t.L[1]}); l.y=t.L[2]; l.room=types[i]==='room'; lights.push(l);
+  }
+  const EG=CFG.v2?buildEdges(RV,riV,shuffleV,cells,solids,shelves,slots):null;
+
+  // 탈출구 후보: 외곽 벽, 앞쪽이 비어 있는 곳만
+  const exitC=[];
+  cells.forEach(c=>{
+    const sides=[];
+    if(c.col===0) sides.push([-1,0]); if(c.col===G-1) sides.push([1,0]);
+    if(c.row===0) sides.push([0,-1]); if(c.row===G-1) sides.push([0,1]);
+    for(const [sx,sz] of sides) for(const off of [-7,0,7]){
+      const x=sx?sx*HALF:c.cx+off, z=sz?sz*HALF:c.cz+off, nx=-sx, nz=-sz;
+      if(clearXZ(x+nx*1.8,z+nz*1.8,1.7,solids,shelves)) exitC.push({x,z,nx,nz,cell:c.i});
+    }
+  });
+
+  const exits=[];
+  for(const e of shuffle(exitC)){
+    if(exits.length>=CFG.exits) break;
+    if(exits.every(q=>dist(q,e)>=CFG.exitMinDist)) exits.push(e);
+  }
+  // 프린터 스테이션: 맵 격자 후보에서 ㄱ/ㅗ × 4방향을 시도해 들어맞는 곳에 배치
+  const doors=slots.filter(s=>s.t==='door');
+  const stationFits=(st,chosen)=>{
+    const b=st.bbox;
+    if(b.x-b.w/2<-HALF+1||b.x+b.w/2>HALF-1||b.z-b.d/2<-HALF+1||b.z+b.d/2>HALF-1) return false;
+    // 구획벽(6.5m)은 프린터를 밟고도 못 넘음 → 벽에 붙여 배치 허용(겹침만 금지). 프린터 접근 가능 여부는 마지막 도달 검사가 확인
+    for(const o of solids) if(gap(b,o)<(o.edge?0.05:o.y0+o.h>1.2?CFG.barrierClear:CFG.stationLowClear)) return false;
+    for(const o of shelves) if(gap(b,o)<CFG.barrierClear) return false;
+    for(const o of chosen) if(gap(b,o.bbox)<CFG.stationGap) return false;
+    for(const d of doors) if(ptRect(d,b)<CFG.doorClear) return false;
+    for(const e of exits) if(ptRect({x:e.x+e.nx*1.8,z:e.z+e.nz*1.8},b)<CFG.exitFrontClear) return false;
+    return true;
+  };
+  const gs=CFG.v2?1:2, grid=[]; for(let x=-HALF+4;x<=HALF-4;x+=gs) for(let z=-HALF+4;z<=HALF-4;z+=gs) grid.push({x,z});
+  const printers=[],stations=[];
+  // 숨김 배치: 들어맞는 후보를 여러 개 모은 뒤 노출도가 낮은 쪽을 고름(받침대 = 책상 0.85m / 낮은 받침대 0.6m 필수)
+  const sg0=CFG.hidePlace?sightGrid({solids,shelves,printers:[]}):null;
+  const gOrder=shuffle(grid);
+  for(let round=0;round<CFG.printers;round++){
+    const nL=stations.filter(o=>o.type==='L').length, nT=stations.length-nL;
+    const tps=nT<nL||(nT===nL&&R()<0.5)?['T','L']:['L','T'];
+    const cand=[];
+    for(const g of gOrder){
+      if(cand.length>=(CFG.hidePlace?12:1)) break;
+      if(printers.some(q=>dist(q,g)<CFG.printerMinDist)||cand.some(c=>dist(c,g)<4)) continue;
+      if(!clearXZ(g.x,g.z,1.0,solids,shelves)) continue; // 프린터 자리 자체가 막힌 곳은 회전 시도 전에 거름
+      const rots=shuffle([0,1,2,3]), th=R()<0.5?0.85:0.6;
+      let st=null;
+      for(const t of tps){for(const r of rots){const c=stationAt(t,g.x,g.z,r,th);if(stationFits(c,stations)){st=c;break;}} if(st) break;}
+      if(st) cand.push({x:g.x,z:g.z,st});
+    }
+    if(!cand.length) break;
+    let pick=cand[0];
+    if(CFG.hidePlace){
+      for(const c of cand){ const g=sg0.slice(); for(const w of c.st.walls) raster(g,w,0.15); c.e=exposure(g,c.x,c.z,1.0)+R()*0.06; }
+      cand.sort((a,b)=>a.e-b.e); pick=cand[0];
+    }
+    const st=pick.st; stations.push(st); if(sg0) for(const w of st.walls) raster(sg0,w,0.15);
+    printers.push({x:pick.x,z:pick.z,w:st.pw,d:st.pd,y0:st.th,station:st.type,base:st.th>0.7?'desk':'low'});
+  }
+  for(const st of stations){
+    for(const w of st.walls) solids.push({shape:'box',x:w.x,z:w.z,w:w.w,d:w.d,y0:0,h:CFG.stationWallH,m:'barrier'});
+    solids.push({shape:'box',x:st.table.x,z:st.table.z,w:st.table.w,d:st.table.d,y0:0,h:st.th,m:'table',base:st.th>0.7?'desk':'low'});
+  }
+  const offStation=(o,r)=>stations.every(st=>ptRect(o,st.bbox)>=r);
+  // v2 시야선 검사: 상자·벤트·도구를 놓기 전에 칸막이부터 세우고, 칸막이에 깔린 슬롯은 버림
+  let breakers=[];
+  if(EG&&EG.connected&&!EG.failed&&printers.length===CFG.printers){
+    breakers=breakerPass({v2:true,solids,shelves,printers,exits,crates:[],tools:[],vents:[],doors:slots.filter(s=>s.t==='door'),edges:EG,spawn:null});
+    for(let k=slots.length-1;k>=0;k--) if(slots[k].t!=='door'&&breakers.some(b=>ptRect(slots[k],b)<1.3)) slots.splice(k,1);
+  }
+  // 벤트: 셀(구획)마다 정확히 1개. 후보 = 템플릿 벤트 자리 + 셀 가장자리·모서리 공용 자리
+  const lanes=shelves.map(laneOf), doorPts=slots.filter(s=>s.t==='door');
+  const ventOk=v=>clearXZ(v.x,v.z,1.0,solids,shelves)&&lanes.every(l=>ptRect(v,l)>=0.8)&&doorPts.every(d=>dist(d,v)>=2.4)&&offStation(v,1.5)
+    &&Math.abs(v.x)<=HALF-1.2&&Math.abs(v.z)<=HALF-1.2&&printers.every(q=>dist(q,v)>=CFG.ventMinDist)&&exits.every(q=>dist(q,v)>=CFG.ventMinDist);
+  const VLOC=[[10.2,10.2],[-10.2,10.2],[10.2,-10.2],[-10.2,-10.2],[0,10.4],[0,-10.4],[10.4,0],[-10.4,0],[6,10.4],[-6,10.4],[6,-10.4],[-6,-10.4],[10.4,6],[10.4,-6],[-10.4,6],[-10.4,-6],[5,5],[-5,5],[5,-5],[-5,-5]];
+  const vc=cells.map(c=>{
+    const own=slots.filter(s=>s.t==='vent'&&s.cell===c.i).map(s=>Object.assign({},s));
+    const gen=VLOC.map(([x,z])=>({t:'vent',x:c.cx+x,z:c.cz+z,cell:c.i}));
+    return shuffle(own).concat(shuffle(gen)).filter(ventOk);
+  });
+  // 프린터마다 printerVentMax(20m) 안에 벤트가 있어야 함 → 아직 안 덮인 프린터를 덮는 후보 우선, 그다음 벤트끼리 멀리
+  const covers=(v,p)=>dist(v,p)<=CFG.printerVentMax;
+  const uncovered=vs=>printers.filter(p=>!vs.some(v=>covers(v,p)));
+  const vents=[];
+  for(const i of [...cells.keys()].sort((a,b)=>vc[a].length-vc[b].length)){
+    let best=null,bs=-1; const need=uncovered(vents);
+    for(const v of vc[i]){const d=vents.length?Math.min(...vents.map(q=>dist(q,v))):99; if(d<CFG.ventGap) continue;
+      const sc=need.filter(p=>covers(v,p)).length*100+Math.min(d,40); if(sc>bs){bs=sc;best=v;}}
+    if(best) vents.push(best);
+  }
+  // 보정: 그래도 안 덮인 프린터는 가까운 셀의 벤트를 다른 후보로 교체
+  for(const p of uncovered(vents)){
+    const byDist=vents.slice().sort((a,b)=>dist(a,p)-dist(b,p));
+    let fixed=false;
+    for(const old of byDist){
+      const rest=vents.filter(v=>v!==old);
+      for(const v of vc[old.cell]){ if(!covers(v,p)||rest.some(q=>dist(q,v)<CFG.ventGap)) continue;
+        if(uncovered(rest.concat([v])).length<uncovered(vents).length){vents[vents.indexOf(old)]=v;fixed=true;break;} }
+      if(fixed) break;
+    }
+  }
+  // 상자: 구조물 옆(특히 두 팔 사이 안쪽) · 노출도 낮은 자리 우선
+  const sgC=CFG.hidePlace?sightGrid({solids,shelves,printers}):null;
+  const crS=shuffle(slots.filter(s=>s.t==='crate'&&clearXZ(s.x,s.z,0.55,solids,shelves)&&doorPts.every(d=>dist(d,s)>=2.0)));
+  if(CFG.hidePlace){ for(const c of crS) c.e=exposure(sgC,c.x,c.z,0.5)-(c.unit?0.12:0)-(c.pocket?0.1:0)+R()*0.1; crS.sort((a,b)=>a.e-b.e); }
+  const crates=[];
+  const countIn=pr=>crates.filter(c=>dist(pr,c)<=CFG.cratePrinterRadius).length;
+  const nearP=c=>printers.filter(pr=>dist(pr,c)<=CFG.cratePrinterRadius);
+  const crateOk=c=>crates.filter(o=>o.cell===c.cell).length<CFG.cratePerCellMax&&crates.every(o=>dist(o,c)>=CFG.crateMinDist)&&vents.every(v=>dist(v,c)>=CFG.crateVentMin)&&printers.every(q=>dist(q,c)>=2.5)&&exits.every(e=>dist(e,c)>=2.5)&&offStation(c,1.0);
+  for(const pr of printers){
+    if(countIn(pr)>=CFG.cratePrinterMin) continue;
+    const c=crS.find(c=>!c.used&&dist(pr,c)<=CFG.cratePrinterRadius&&crateOk(c)&&nearP(c).every(q=>countIn(q)<CFG.cratePrinterMax));
+    if(c){c.used=1;crates.push(c);}
+  }
+  // 셀마다 최소 1개 (방·격납고가 빈 공간이 되지 않게) → 나머지는 숨김 순서대로
+  for(const cl of cells){ if(crates.some(o=>o.cell===cl.i)) continue;
+    const c=crS.find(c=>!c.used&&c.cell===cl.i&&crateOk(c)&&nearP(c).every(q=>countIn(q)<CFG.cratePrinterMax)); if(c){c.used=1;crates.push(c);} }
+  for(const c of crS){
+    if(crates.length>=CFG.crates) break;
+    if(c.used||!crateOk(c)) continue;
+    if(nearP(c).some(q=>countIn(q)>=CFG.cratePrinterMax)) continue;
+    c.used=1; crates.push(c);
+  }
+  // 무력화 재료: 인원수 + 2, 3종이 최소 1개씩 나오도록 섞음
+  const toolN=CFG.players+2;
+  const kinds=shuffle(Array.from({length:toolN},(_,i)=>['battery','coil','ln2'][i%3]));
+  const tools=[];
+  for(const s of shuffle(slots.filter(s=>s.t==='tool'||(s.t==='crate'&&!s.used)))){
+    if(tools.length>=toolN) break;
+    if(tools.every(o=>dist(o,s)>=CFG.toolMinDist)&&vents.every(v=>dist(v,s)>=4)&&printers.every(q=>dist(q,s)>=2.5)&&crates.every(c=>dist(c,s)>=2)&&offStation(s,1.0)){
+      s.used=1; tools.push(Object.assign({},s,{kind:kinds[tools.length]}));
+    }
+  }
+  // 스폰: 술래는 중앙 근처, 생존자는 술래에게서 가장 먼 빈 슬롯
+  const free=slots.filter(s=>(s.t==='crate'||s.t==='tool')&&!s.used&&offStation(s,1.5));
+  let tSp=free.reduce((a,b)=>Math.hypot(b.x,b.z)<Math.hypot(a.x,a.z)?b:a,free[0]);
+  let sSp=free.reduce((a,b)=>dist(b,tSp)>dist(a,tSp)?b:a,free[0]);
+
+  const counts=printers.map(countIn);
+  // 선반 장벽 라인: 길이와 술래 우회 시간
+  // 선반마다 술래 우회 시간: 같은 줄(일직선)에 붙은 장벽 끝까지 돌아가는 거리
+  // ㄱ·ㅗ는 허브 쪽 끝이 다른 팔에 막혀 있으므로 반대쪽(끝 장벽) 끝으로만 돈다고 계산
+  const lines=shelves.map(sf=>{
+    const ax=sf.w>sf.d, FD=CFG.shelfDepth+0.2, cross=1.7, c=ax?sf.x:sf.z;
+    const band=solids.filter(o=>o.lid===sf.lid&&o.m==='barrier'&&(ax?Math.abs(o.z-sf.z)<0.3:Math.abs(o.x-sf.x)<0.3));
+    const all=[sf,...band];
+    const lo=Math.min(...all.map(o=>ax?o.x-o.w/2:o.z-o.d/2)), hi=Math.max(...all.map(o=>ax?o.x+o.w/2:o.z+o.d/2));
+    const hub=band.find(o=>o.hub);
+    const e=hub?((ax?hub.x:hub.z)<c?hi-c:c-lo):Math.min(c-lo,hi-c);
+    const tag=2*Math.hypot(e+CFG.tR+0.2,cross-FD/2)+FD, surv=2*cross;
+    return {len:hi-lo,kind:sf.unit||'I',detour:tag/CFG.tSpeed-surv/((CFG.slideSpeed+CFG.slideEnd)/2)};
+  });
+  // 술래가 밟고 장벽 위로 올라갈 수 있는 발판이 장벽 옆에 붙어 있으면 안 됨
+  const reach=CFG.tJump*CFG.tJump/(2*CFG.g);
+  const isTall=o=>o.m==='barrier'||o.m==='wall';
+  const talls=solids.filter(isTall).map(o=>Object.assign({},o,{top:o.y0+o.h})).concat(shelves.map(o=>Object.assign({},o,{top:CFG.barrierH})));
+  const steps=solids.filter(o=>!isTall(o)&&o.m!=='pillar').map(o=>Object.assign({},o,{top:o.y0+o.h})).concat(printers.map(p=>Object.assign({},p,{top:p.y0+CFG.printerH})));
+  let climbGap=Infinity;
+  for(const a of steps) for(const b of talls) if(a.top<b.top&&a.top+reach>b.top) climbGap=Math.min(climbGap,gap(a,b));
+  const rules=[
+    {name:'프린터 스테이션 (받침대 + ㄱ·ㅗ)',val:`${printers.length}/${CFG.printers} · ㄱ${stations.filter(s=>s.type==='L').length} ㅗ${stations.filter(s=>s.type==='T').length}`,ok:printers.length===CFG.printers},
+    {name:'프린터 간 최소 거리',val:`${fm(minPair(printers))} ≥ ${CFG.printerMinDist}`,ok:minPair(printers)>=CFG.printerMinDist},
+    {name:'프린터 ↔ 최근접 벤트',val:`${fm(minTo(printers,vents))} ≥ ${CFG.ventMinDist}`,ok:minTo(printers,vents)>=CFG.ventMinDist},
+    {name:'탈출구 ↔ 최근접 벤트',val:`${fm(minTo(exits,vents))} ≥ ${CFG.ventMinDist}`,ok:minTo(exits,vents)>=CFG.ventMinDist},
+    {name:'슬라이딩 선반 개수',val:`${shelves.length} ≥ ${CFG.minShelves}`,ok:shelves.length>=CFG.minShelves},
+    {name:'높은 발판 ↔ 장벽 (술래 등반 차단)',val:`${fm(climbGap)} ≥ ${CFG.barrierClear}`,ok:climbGap>=CFG.barrierClear},
+    {name:'탈출구 (랜덤 외곽)',val:`${exits.length} / ${CFG.exits}`,ok:exits.length===CFG.exits},
+    {name:'벤트 출구 (셀마다 1개)',val:`${new Set(vents.map(v=>v.cell)).size} / ${cells.length}`,ok:new Set(vents.map(v=>v.cell)).size===cells.length},
+    {name:`프린터 ↔ 가장 가까운 벤트 ≤ ${CFG.printerVentMax}m`,val:`최대 ${fm(Math.max(...printers.map(p=>Math.min(...vents.map(v=>dist(v,p))))))}`,ok:printers.length>0&&printers.every(p=>vents.some(v=>dist(v,p)<=CFG.printerVentMax))},
+    {name:'프린터 받침대 (책상 · 낮은 받침대)',val:`책상 ${printers.filter(p=>p.base==='desk').length} · 낮은 ${printers.filter(p=>p.base==='low').length}`,ok:printers.length===CFG.printers&&printers.every(p=>p.base)},
+    {name:'상자 있는 셀',val:`${new Set(crates.map(c=>c.cell)).size} / ${cells.length}`,ok:new Set(crates.map(c=>c.cell)).size===cells.length},
+    {name:`구조물 옆 상자 ≥ ${CFG.crateUnitMin}`,val:`${crates.filter(c=>c.unit).length} (안쪽 ${crates.filter(c=>c.pocket).length})`,ok:!CFG.hidePlace||crates.filter(c=>c.unit).length>=CFG.crateUnitMin},
+    {name:'벤트 간 최소 거리',val:`${fm(minPair(vents))} ≥ ${CFG.ventGap}`,ok:minPair(vents)>=CFG.ventGap},
+    {name:'플라스틱 상자',val:`${crates.length} / ${CFG.crates}`,ok:crates.length===CFG.crates},
+    {name:`프린터 반경 ${CFG.cratePrinterRadius}m 상자 ${CFG.cratePrinterMin}~${CFG.cratePrinterMax}`,val:counts.join('·')||'—',ok:counts.length>0&&counts.every(n=>n>=CFG.cratePrinterMin&&n<=CFG.cratePrinterMax)},
+    {name:'상자 ↔ 벤트 거리',val:`${fm(minTo(crates,vents))} ≥ ${CFG.crateVentMin}`,ok:minTo(crates,vents)>=CFG.crateVentMin},
+    {name:'무력화 재료 (인원수+2)',val:`${tools.length} / ${toolN}`,ok:tools.length===toolN}
+  ];
+  if(EG) rules.push(
+    {name:'구획 연결 (모든 셀 도달 · 실패 경계 0)',val:`${EG.connected?'연결':'끊김'} · 실패 ${EG.failed}`,ok:EG.connected&&EG.failed===0},
+    {name:'구획 루프 ≥ 2',val:`${EG.loops}`,ok:EG.loops>=2},
+    {name:'막다른 셀 ≤ 1',val:`${EG.deadEnds}`,ok:EG.deadEnds<=1}
+  );
+  const score=rules.filter(r=>r.ok).length;
+  printers.forEach((o,i)=>o.label='P'+(i+1)); crates.forEach((o,i)=>o.label='C'+(i+1));
+  vents.forEach((o,i)=>o.label='V'+(i+1)); exits.forEach((o,i)=>o.label='E'+(i+1)); tools.forEach((o,i)=>o.label='T'+(i+1));
+  return {seed,v2:!!EG,ok:score===rules.length,score,cells,solids,shelves,printers,exits,vents,crates,tools,lights,rules,lines,stations,
+    doors:slots.filter(s=>s.t==='door'),edges:EG,breakers,spawn:{survivor:sSp,tagger:tSp}};
+}
+
+/* =========================================================
+   4-2. 공간 분석 — 0.5m 격자. 보행(술래 기준, 반경 0.45 팽창) / 시야(눈높이 1.6m)
+   ========================================================= */
+const RES=0.5, NG=Math.round(HALF*2/RES);
+const cIdx=v=>Math.min(NG-1,Math.max(0,Math.floor((v+HALF)/RES)));
+const cPos=i=>(i+0.5)*RES-HALF;
+function raster(g,o,e){
+  const i0=Math.max(0,Math.ceil((o.x-o.w/2-e+HALF)/RES-0.5)), i1=Math.min(NG-1,Math.floor((o.x+o.w/2+e+HALF)/RES-0.5));
+  const j0=Math.max(0,Math.ceil((o.z-o.d/2-e+HALF)/RES-0.5)), j1=Math.min(NG-1,Math.floor((o.z+o.d/2+e+HALF)/RES-0.5));
+  for(let j=j0;j<=j1;j++) for(let i=i0;i<=i1;i++) g[j*NG+i]=1;
+}
+function walkGrid(L,extra){
+  const g=new Uint8Array(NG*NG), e=0.45;
+  for(const o of L.solids) if(o.y0<1.9&&o.y0+o.h>0.95) raster(g,o,e);
+  for(const o of L.shelves) raster(g,o,e);
+  for(const p of L.printers) raster(g,p,e);
+  if(extra) raster(g,extra,e);
+  for(let k=0;k<NG;k++){g[k]=g[(NG-1)*NG+k]=g[k*NG]=g[k*NG+NG-1]=1;}
+  return g;
+}
+function sightGrid(L,extra){
+  const g=new Uint8Array(NG*NG);
+  const e=0.15; // 얇은 벽(0.4m)이 0.5m 격자 사이로 빠지지 않게 살짝 팽창
+  for(const o of L.solids) if(o.y0<1.6&&o.y0+o.h>1.6) raster(g,o,e);
+  for(const o of L.shelves) raster(g,o,e);
+  for(const p of L.printers) raster(g,p,e);
+  if(extra) raster(g,extra,e);
+  return g;
+}
+/* 노출도: 점에서 16방향 눈높이 시야 길이 평균(expoR 상한) ÷ expoR. skip = 자기 자리(받침대 등) 건너뛰는 거리 */
+function exposure(sg,x,z,skip){
+  let sum=0; const M=CFG.expoR;
+  for(let k=0;k<16;k++){const a=k*Math.PI/8, dx=Math.cos(a), dz=Math.sin(a); let t=skip;
+    for(;t<M;t+=0.5){const i=cIdx(x+dx*t), j=cIdx(z+dz*t); if(Math.abs(x+dx*t)>=HALF||Math.abs(z+dz*t)>=HALF||sg[j*NG+i]) break;}
+    sum+=Math.min(t,M);}
+  return sum/16/M;
+}
+function nearFree(g,x,z,r){
+  const ci=cIdx(x),cj=cIdx(z),k=Math.ceil(r/RES); let best=-1,bd=Infinity;
+  for(let j=cj-k;j<=cj+k;j++) for(let i=ci-k;i<=ci+k;i++){
+    if(i<0||j<0||i>=NG||j>=NG||g[j*NG+i]) continue;
+    const d=Math.hypot(cPos(i)-x,cPos(j)-z); if(d<=r&&d<bd){bd=d;best=j*NG+i;}
+  }
+  return best;
+}
+function flood(g,src){
+  const seen=new Uint8Array(NG*NG); if(src<0) return {seen,count:0};
+  const q=new Int32Array(NG*NG); let h=0,t=0,count=0; q[t++]=src; seen[src]=1;
+  while(h<t){const u=q[h++];count++;const i=u%NG,j=(u/NG)|0;
+    for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=i+di,b=j+dj;if(a<0||b<0||a>=NG||b>=NG)continue;const v=b*NG+a;if(!g[v]&&!seen[v]){seen[v]=1;q[t++]=v;}}}
+  return {seen,count};
+}
+function targetsOf(L){
+  return [].concat(
+    L.printers.map(p=>({x:p.x,z:p.z,r:2.8})),
+    L.exits.map(e=>({x:e.x+e.nx*2,z:e.z+e.nz*2,r:1.5})),
+    L.vents.map(v=>({x:v.x,z:v.z,r:1.6})), L.crates.map(c=>({x:c.x,z:c.z,r:1.6})), L.tools.map(t=>({x:t.x,z:t.z,r:1.6})));
+}
+function allReach(g,fl,tg){
+  for(const t of tg){const ci=cIdx(t.x),cj=cIdx(t.z),k=Math.ceil(t.r/RES);let ok=false;
+    for(let j=cj-k;j<=cj+k&&!ok;j++) for(let i=ci-k;i<=ci+k;i++){if(i<0||j<0||i>=NG||j>=NG)continue;const v=j*NG+i;if(fl.seen[v]&&Math.hypot(cPos(i)-t.x,cPos(j)-t.z)<=t.r){ok=true;break;}}
+    if(!ok) return false;}
+  return true;
+}
+const SDIR=[[1,0],[0,1],[1,1],[1,-1]];
+function march(sg,i,j,di,dj){let k=0;for(;;){i+=di;j+=dj;if(i<0||j<0||i>=NG||j>=NG||sg[j*NG+i])return k;if(di&&dj&&sg[(j-dj)*NG+i]&&sg[j*NG+i-di])return k;k++;}}
+function sightScan(sg,wg,limit){
+  let best={len:0}, n=0, expo=0; const per=[], long=[];
+  for(let j=2;j<NG;j+=4) for(let i=2;i<NG;i+=4){
+    const u=j*NG+i; if(wg[u]||sg[u]) continue; n++; let pm=0;
+    for(const [di,dj] of SDIR){
+      const f=march(sg,i,j,di,dj), b=march(sg,i,j,-di,-dj), len=(f+b)*RES*Math.hypot(di,dj);
+      if(len>pm) pm=len;
+      const s={len,i0:i-b*di,j0:j-b*dj,i1:i+f*di,j1:j+f*dj,di,dj};
+      if(len>best.len) best=s;
+      if(len>limit) long.push(s);
+    }
+    per.push(pm); if(pm>limit) expo++;
+  }
+  per.sort((a,b)=>a-b);
+  long.sort((a,b)=>b.len-a.len);
+  const uniq=[]; for(const s of long){ if(uniq.some(q=>q.di===s.di&&q.dj===s.dj&&q.i0===s.i0&&q.j0===s.j0)) continue; uniq.push(s); if(uniq.length>=24) break; }
+  return {max:best.len,ray:best,p90:per[Math.floor(per.length*0.9)]||0,expo:n?expo/n:0,long:uniq};
+}
+function dijkstra(g,src){
+  const D=new Int32Array(NG*NG).fill(1e9); if(src<0) return D;
+  const B=[[],[],[],[]]; D[src]=0; B[0].push(src); let cur=0,pend=1;
+  while(pend>0){
+    const bk=B[cur&3]; if(!bk.length){cur++;continue;}
+    const u=bk.pop(); pend--; if(D[u]!==cur) continue;
+    const i=u%NG,j=(u/NG)|0;
+    for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){
+      if(!di&&!dj) continue; const a=i+di,b=j+dj; if(a<0||b<0||a>=NG||b>=NG) continue;
+      const v=b*NG+a; if(g[v]) continue;
+      if(di&&dj&&(g[j*NG+a]||g[b*NG+i])) continue;
+      const nd=cur+(di&&dj?3:2); if(nd<D[v]){D[v]=nd;B[nd&3].push(v);pend++;}
+    }
+  }
+  return D;
+}
+/* 시야선 차단물: 가장 긴 시야선 위에 (문 앞 2.2m 밖이면 문 가림막 역할도) 넘을 수 없는 칸막이(사물함·컨테이너, 3.0×0.6×5.2m)
+   조건: 다른 물체와 1m 이상 · 높은 발판과 2.5m 이상(술래 등반 차단) · 문·벤트·상자 비켜서 · 동선 끊지 않음 */
+function breakerPass(L){
+  const placed=[], tg=targetsOf(L);
+  const steps=L.solids.filter(o=>o.m!=='barrier'&&o.m!=='wall'&&o.m!=='pillar'&&o.y0+o.h>CFG.barrierH-CFG.tJump*CFG.tJump/(2*CFG.g)).concat(L.printers);
+  const avoid=[].concat(L.crates.map(o=>[o,1.5]),L.tools.map(o=>[o,1.5]),L.vents.map(o=>[o,2.2]),L.doors.map(o=>[o,2.2]),
+    L.exits.map(e=>[{x:e.x+e.nx*1.8,z:e.z+e.nz*1.8},CFG.exitFrontClear]),L.spawn?[[L.spawn.survivor,2],[L.spawn.tagger,2]]:[]);
+  const isWall=o=>o.m==='wall'&&!o.lintel;
+  // 구획벽·방 벽에는 붙이거나(겹침 허용) 1m 이상 띄움 — 좁은 틈 금지. 선반 장벽·스테이션 벽은 건드리지 않음
+  const tooClose=(b,o)=>{const d=gap(b,o); return isWall(o)?(d>0.001&&d<1.0):d<1.0;};
+  const sp=L.spawn?L.spawn.tagger:L.printers[0];
+  let wg=walkGrid(L), src=nearFree(wg,sp.x,sp.z,3), base=flood(wg,src), floods=0;
+  const tryPlace=b=>{
+    if(b.x-b.w/2<-HALF+1||b.x+b.w/2>HALF-1||b.z-b.d/2<-HALF+1||b.z+b.d/2>HALF-1) return false;
+    if(L.solids.some(o=>o.y0<2.6&&tooClose(b,o))||L.shelves.some(o=>gap(b,o)<1.0)||L.printers.some(o=>gap(b,o)<1.0)) return false;
+    if(steps.some(o=>gap(b,o)<CFG.barrierClear)) return false;
+    if(avoid.some(([o,r])=>ptRect(o,b)<r)) return false;
+    floods++; const g2=walkGrid(L,b), f2=flood(g2,src);
+    if(f2.count<base.count-70||!allReach(g2,f2,tg)) return false;
+    b.breaker=true; L.solids.push(b); placed.push(b); wg=g2; base=f2; return true;
+  };
+  // 1단계 · 문 가림막: 문을 정면으로 관통하는 시야가 상한을 넘으면, 더 트인 쪽 2~3.4m 안쪽에 칸막이
+  if(L.edges) for(const e of L.edges.edges){ if(e.type==='closed') continue;
+    for(const p of e.ops){ if(p.w>CFG.doorW+0.01) continue;
+      const sg=sightGrid(L), q=e.ax==='x'?{x:e.x,z:e.z+p.c}:{x:e.x+p.c,z:e.z};
+      const i=cIdx(q.x), j=cIdx(q.z), di=e.ax==='x'?1:0, dj=e.ax==='x'?0:1;
+      const fwd=march(sg,i,j,di,dj)*RES, back=march(sg,i,j,-di,-dj)*RES;
+      if(fwd+back<=CFG.sightMax) continue;
+      const sides=fwd>=back?[1,-1]:[-1,1];
+      let ok=false;
+      for(const sd of sides){ for(const dd of [2.2,2.8,3.4]){
+        const cx=e.ax==='x'?q.x+sd*dd:q.x, cz=e.ax==='x'?q.z:q.z+sd*dd;
+        const b=e.ax==='x'?bx(cx,cz,CFG.breakerT,4.0,0,CFG.barrierH,'barrier'):bx(cx,cz,4.0,CFG.breakerT,0,CFG.barrierH,'barrier');
+        const keep=avoid.slice(); // 이 문 자신은 피하지 않음
+        const own=keep.filter(([o])=>!(Math.abs(o.x-q.x)<0.01&&Math.abs(o.z-q.z)<0.01)); avoid.length=0; avoid.push(...own);
+        ok=tryPlace(b); avoid.length=0; avoid.push(...keep);
+        if(ok){b.baffle=true;break;}
+      } if(ok) break; }
+    }
+  }
+  // 2단계 · 남은 긴 시야선 위에 칸막이
+  for(let it=placed.length;it<CFG.maxBreakers;it++){
+    const sg=sightGrid(L), sc=sightScan(sg,wg,CFG.sightMax);
+    if(sc.max<=CFG.sightMax) break;
+    let got=false; floods=0;
+    for(const s of sc.long){
+      if(floods>80) break;
+      const x0=cPos(s.i0),z0=cPos(s.j0),x1=cPos(s.i1),z1=cPos(s.j1), dl=Math.hypot(x1-x0,z1-z0), ux=(x1-x0)/dl, uz=(z1-z0)/dl;
+      const orients=s.di&&s.dj?['x','z']:s.di?['z']:['x'];
+      const ts=[0.5]; for(let k=1;k<=7;k++) ts.push(0.5-k*0.05,0.5+k*0.05);
+      for(const t of ts){ for(const ori of orients){ for(const lat of [0,0.7,-0.7,1.3,-1.3]){
+        const cx=x0+(x1-x0)*t-uz*lat, cz=z0+(z1-z0)*t+ux*lat;
+        const b=ori==='x'?bx(cx,cz,CFG.breakerLen,CFG.breakerT,0,CFG.barrierH,'barrier'):bx(cx,cz,CFG.breakerT,CFG.breakerLen,0,CFG.barrierH,'barrier');
+        if(tryPlace(b)){got=true;break;}
+      } if(got) break; } if(got) break; }
+      if(got) break;
+    }
+    if(!got) break;
+  }
+  return placed;
+}
+function analyze(L){
+  const wg=walkGrid(L), sg=sightGrid(L), sc=sightScan(sg,wg,CFG.sightMax);
+  const src=nearFree(wg,L.spawn.tagger.x,L.spawn.tagger.z,3), fl=flood(wg,src);
+  const reach=allReach(wg,fl,targetsOf(L));
+  const pc=L.printers.map(p=>nearFree(wg,p.x,p.z,3)), ec=L.exits.map(e=>nearFree(wg,e.x+e.nx*2,e.z+e.nz*2,3));
+  const ratios=[];
+  pc.forEach((a,k)=>{ if(a<0) return; const D=dijkstra(wg,a);
+    const tgt=pc.slice(k+1).concat(ec);
+    for(const b of tgt){ if(b<0||D[b]>=1e9) continue; const eu=Math.hypot(cPos(a%NG)-cPos(b%NG),cPos((a/NG)|0)-cPos((b/NG)|0)); if(eu>4) ratios.push(D[b]/2*RES/eu); }
+  });
+  const mean=ratios.length?ratios.reduce((s,v)=>s+v,0)/ratios.length:0;
+  const mean_=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
+  const sgNP=sightGrid({solids:L.solids,shelves:L.shelves,printers:[]}); // 프린터 자신은 빼고 잼
+  const pE=L.printers.map(p=>exposure(sgNP,p.x,p.z,1.0)), cE=L.crates.map(c=>exposure(sg,c.x,c.z,0.5));
+  const pv=L.printers.map(p=>Math.min(...L.vents.map(v=>dist(v,p))));
+  return {maxSight:sc.max,ray:sc.ray,p90:sc.p90,expo:sc.expo,reach,detour:mean,detourMax:ratios.length?Math.max(...ratios):0,
+    printerExpo:mean_(pE),crateExpo:mean_(cE),printerVent:Math.max(...pv),printerVentMean:mean_(pv)};
+}
+function finalize(L){
+  L.breakers=L.breakers||[];
+  L.metrics=analyze(L);
+  const m=L.metrics;
+  L.rules.push({name:'모든 목표 도달 (술래 보행 기준)',val:m.reach?'도달':'막힘',ok:m.reach});
+  L.rules.push({name:`최대 시야선 ≤ ${CFG.sightMax}m (참고)`,val:`${m.maxSight.toFixed(1)}m`,ok:m.maxSight<=CFG.sightMax,soft:true});
+  L.ok=L.ok&&m.reach;
+  return L;
+}
+
+function generate(base){
+  let best=null;
+  // v2는 같은 모듈 배치에서 경계 조합만 먼저 여러 번 다시 뽑음 (salt)
+  let n=0;
+  for(let a=0;a<400;a++) for(let salt=0;salt<(CFG.v2?8:1);salt++){
+    const L=tryLayout((base+a*7919)>>>0,salt);
+    L.attempts=++n;
+    if(L.ok){ finalize(L); if(L.ok) return L; }
+    if(!best||L.score>best.score) best=L;
+  }
+  if(!best.metrics) finalize(best);
+  return best;
+}
+
+/* =========================================================
+   5. 렌더러 — 3단 툰 셰이딩 + 포스트 프로세스 엣지(깊이+노멀) 아웃라인
+   ========================================================= */
+const canvas=$('#c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'high-performance'});
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFShadowMap; renderer.shadowMap.autoUpdate=false;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(COL.bg);
+scene.fog=new THREE.Fog(COL.bg,75,175);
+const camera=new THREE.PerspectiveCamera(55,1,0.3,260);
+scene.add(new THREE.HemisphereLight(0x8a96a4,0x1a1d21,0.62));
+const sun=new THREE.DirectionalLight(0xb9c5d2,0.5);
+sun.position.set(28,60,18); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-48,right:48,top:48,bottom:-48,near:10,far:140}); sun.shadow.bias=-0.0008;
+scene.add(sun);
+
+const grad=new THREE.DataTexture(new Uint8Array([110,110,110,255,182,182,182,255,255,255,255,255]),3,1,THREE.RGBAFormat);
+grad.minFilter=grad.magFilter=THREE.NearestFilter; grad.generateMipmaps=false; grad.needsUpdate=true;
+const matCache={};
+function toon(c,em=0,ei=0){const k=c+'_'+em+'_'+ei;return matCache[k]||(matCache[k]=new THREE.MeshToonMaterial({color:c,gradientMap:grad,emissive:em,emissiveIntensity:ei}));}
+const GB=new THREE.BoxGeometry(1,1,1), GC=new THREE.CylinderGeometry(1,1,1,24), GS=new THREE.SphereGeometry(1,20,14);
+const normalMat=new THREE.MeshNormalMaterial();
+
+const post=new THREE.ShaderMaterial({
+  uniforms:{tColor:{value:null},tNormal:{value:null},tDepth:{value:null},texel:{value:new THREE.Vector2()},
+    cNear:{value:camera.near},cFar:{value:camera.far},lineColor:{value:new THREE.Color(0x121417)},fogA:{value:75},fogB:{value:175}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
+  fragmentShader:`
+    uniform sampler2D tColor,tNormal,tDepth;uniform vec2 texel;uniform float cNear,cFar,fogA,fogB;uniform vec3 lineColor;varying vec2 vUv;
+    float lin(vec2 uv){float d=texture2D(tDepth,uv).x;float z=d*2.0-1.0;return 2.0*cNear*cFar/(cFar+cNear-z*(cFar-cNear));}
+    vec3 nrm(vec2 uv){return texture2D(tNormal,uv).xyz*2.0-1.0;}
+    void main(){
+      vec3 col=texture2D(tColor,vUv).rgb;
+      vec2 ox=vec2(texel.x,0.0),oy=vec2(0.0,texel.y);
+      float dc=lin(vUv);
+      float i0=1.0/dc;
+      float lap=abs(1.0/lin(vUv+ox)+1.0/lin(vUv-ox)+1.0/lin(vUv+oy)+1.0/lin(vUv-oy)-4.0*i0)/i0;
+      float de=smoothstep(0.02,0.05,lap);
+      vec3 n0=nrm(vUv);
+      float nd=(1.0-dot(n0,nrm(vUv+ox)))+(1.0-dot(n0,nrm(vUv-ox)))+(1.0-dot(n0,nrm(vUv+oy)))+(1.0-dot(n0,nrm(vUv-oy)));
+      float ne=smoothstep(0.35,0.7,nd);
+      float e=max(de,ne)*(1.0-0.85*smoothstep(fogA,fogB,dc));
+      gl_FragColor=vec4(mix(col,lineColor,e*0.92),1.0);
+    }`,
+  depthTest:false,depthWrite:false
+});
+const postScene=new THREE.Scene(), postCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),post));
+let rtC=null, rtN=null, PR=1;
+
+function resize(){
+  const w=innerWidth,h=innerHeight;
+  PR=Math.min(Math.max(devicePixelRatio||1,1.5),2);
+  renderer.setPixelRatio(PR); renderer.setSize(w,h,false);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  const bw=Math.floor(w*PR),bh=Math.floor(h*PR);
+  if(rtC){rtC.dispose();rtC.depthTexture.dispose();rtN.dispose();}
+  rtC=new THREE.WebGLRenderTarget(bw,bh);
+  rtC.depthTexture=new THREE.DepthTexture(bw,bh); rtC.depthTexture.type=THREE.UnsignedIntType;
+  rtN=new THREE.WebGLRenderTarget(bw,bh,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});
+  post.uniforms.tColor.value=rtC.texture; post.uniforms.tDepth.value=rtC.depthTexture; post.uniforms.tNormal.value=rtN.texture;
+  const k=PR*0.6; post.uniforms.texel.value.set(k/bw,k/bh);
+  sizeMini();
+}
+function render(){
+  renderer.shadowMap.needsUpdate=true;
+  renderer.setRenderTarget(rtC); renderer.render(scene,camera);
+  const bg=scene.background; scene.background=null; scene.overrideMaterial=normalMat;
+  renderer.setClearColor(0x000000,1); renderer.setRenderTarget(rtN); renderer.clear(); renderer.render(scene,camera);
+  scene.overrideMaterial=null; scene.background=bg;
+  renderer.setRenderTarget(null); renderer.render(postScene,postCam);
+}
+
+/* =========================================================
+   6. 메쉬 빌더 — 각 함수가 "모델 교체 슬롯". 나중에 GLB 로더로 바꿔 끼움
+   ========================================================= */
+function addBox(g,x,y0,z,w,h,d,mat,cast=true){const m=new THREE.Mesh(GB,mat);m.scale.set(w,h,d);m.position.set(x,y0+h/2,z);m.castShadow=cast;m.receiveShadow=true;g.add(m);return m;}
+function addCyl(g,x,y0,z,r,h,mat,cast=true){const m=new THREE.Mesh(GC,mat);m.scale.set(r,h,r);m.position.set(x,y0+h/2,z);m.castShadow=cast;m.receiveShadow=true;g.add(m);return m;}
+
+const MODEL_SLOTS={
+  printer(g,p){
+    const y=p.y0||0;
+    addBox(g,p.x,y,p.z,p.w,0.9,p.d,toon(COL.printer));
+    addBox(g,p.x,y+0.9,p.z,p.w*0.75,0.55,p.d*0.75,toon(COL.printerTop));
+    addBox(g,p.x,y+CFG.printerH,p.z,0.32,0.08,0.32,toon(COL.printer,COL.printer,1.4),false);
+  },
+  printer_base(g,o){
+    if(o.base==='low'){ // 낮은 받침대: 통짜 블록 + 모서리 경고 띠
+      addBox(g,o.x,0,o.z,o.w,o.h-0.06,o.d,toon(0x5d564c));
+      addBox(g,o.x,o.h-0.06,o.z,o.w+0.04,0.06,o.d+0.04,toon(COL.crate));
+      return;
+    }
+    const m=toon(COL.table);
+    addBox(g,o.x,o.h-0.08,o.z,o.w,0.08,o.d,m);
+    for(const a of [-1,1]) for(const b of [-1,1]) addBox(g,o.x+a*(o.w/2-0.08),0,o.z+b*(o.d/2-0.08),0.1,o.h-0.08,0.1,m);
+    addBox(g,o.x,0.15,o.z,o.w-0.2,0.05,o.d-0.2,m);
+  },
+  crate(g,c){
+    addBox(g,c.x,0,c.z,0.9,0.7,0.9,toon(COL.crate));
+    addBox(g,c.x,0.42,c.z,0.94,0.08,0.94,toon(0x8f7420));
+  },
+  tool(g,t){
+    const grp=new THREE.Group(); grp.position.set(t.x,0,t.z); g.add(grp);
+    const c=COL[t.kind], m=toon(c,c,0.35);
+    addCyl(grp,0,0,0,0.55,0.03,toon(c),false);
+    const spin=new THREE.Group(); spin.position.y=0.75; grp.add(spin);
+    if(t.kind==='battery'){addCyl(spin,0,-0.25,0,0.18,0.5,m);addCyl(spin,0,0.25,0,0.08,0.08,toon(COL.crate));}
+    else if(t.kind==='coil'){const tr=new THREE.Mesh(new THREE.TorusGeometry(0.24,0.09,10,24),m);tr.castShadow=true;spin.add(tr);addBox(spin,0,-0.04,0,0.6,0.08,0.12,toon(COL.struct));}
+    else {addCyl(spin,0,-0.28,0,0.17,0.56,m);addCyl(spin,0,0.28,0,0.1,0.1,toon(COL.struct));}
+    t.spin=spin;
+  },
+  vent(g,v){
+    v.mat=new THREE.MeshToonMaterial({color:COL.vent,gradientMap:grad,emissive:COL.vent,emissiveIntensity:0});
+    addBox(g,v.x,0,v.z,1.4,0.12,1.4,v.mat,false);
+    addBox(g,v.x,2.5,v.z,0.8,5.4,0.8,toon(COL.duct));
+    v.marker=new THREE.Mesh(new THREE.TorusGeometry(1.05,0.09,8,32),toon(COL.vent,COL.vent,1.4));
+    v.marker.rotation.x=Math.PI/2; v.marker.position.set(v.x,0.35,v.z); v.marker.visible=false; g.add(v.marker);
+  },
+  exit(g,e){
+    const grp=new THREE.Group(); grp.position.set(e.x,0,e.z); grp.rotation.y=Math.atan2(e.nx,e.nz); g.add(grp);
+    addBox(grp,0,0,0.15,3.2,3.4,0.3,toon(COL.exit));
+    addBox(grp,-1.85,0,0.25,0.5,3.9,0.5,toon(COL.struct)); addBox(grp,1.85,0,0.25,0.5,3.9,0.5,toon(COL.struct));
+    addBox(grp,0,3.4,0.25,4.2,0.5,0.5,toon(COL.struct));
+    addBox(grp,0,4.05,0.35,0.7,0.3,0.3,new THREE.MeshBasicMaterial({color:COL.exit}),false);
+    addBox(grp,0,0.002,1.4,3.2,0.012,2.4,toon(0x5a2a2c),false);
+    const pl=new THREE.PointLight(COL.exit,0.9,9,1.6); pl.position.set(0,4,1); grp.add(pl);
+  },
+  shelf(g,s,R){
+    const long=s.w>s.d, L=long?s.w:s.d, Wd=long?s.d:s.w, H=CFG.barrierH;
+    // 바닥 표시: 선반을 가로지르는 슬라이딩 경로
+    if(long) addBox(g,s.x,0.012,s.z,L-0.2,0.01,Wd+2.4,toon(COL.lane),false); else addBox(g,s.x,0.012,s.z,Wd+2.4,0.01,L-0.2,toon(COL.lane),false);
+    const levels=[CFG.shelfGap,1.9,2.85,3.8,4.75,H-0.06];
+    for(const y of levels) addBox(g,s.x,y,s.z,s.w,0.06,s.d,toon(COL.shelf));
+    for(const a of [-1,1]) for(const b of [-1,1]){
+      const px=long?s.x+a*(s.w/2-0.05):s.x+b*(s.w/2-0.05), pz=long?s.z+b*(s.d/2-0.05):s.z+a*(s.d/2-0.05);
+      addBox(g,px,0,pz,0.09,H,0.09,toon(COL.shelf));
+    }
+    for(let li=0;li<levels.length-2;li++){
+      const y0=levels[li]+0.06, room=levels[li+1]-y0-0.08;
+      let u=-L/2+0.2;
+      while(u<L/2-0.5){
+        const bw=0.35+R()*0.55, bh=room*(0.45+R()*0.5), bd=Wd*(0.5+R()*0.35);
+        if(R()<0.75){const cx=u+bw/2; if(long) addBox(g,s.x+cx,y0,s.z,bw,bh,bd,toon(COL.shelfBox)); else addBox(g,s.x,y0,s.z+cx,bd,bh,bw,toon(COL.shelfBox));}
+        u+=bw+0.08+R()*0.25;
+      }
+    }
+  },
+  barrier(g,o,R){
+    const long=o.w>o.d, L=long?o.w:o.d, H=o.h||CFG.barrierH;
+    if(R()<0.5){
+      // 컨테이너 2단 적재
+      const h1=H/2;
+      addBox(g,o.x,0,o.z,o.w,h1,o.d,toon(COL.barrier));
+      addBox(g,o.x,h1,o.z,long?o.w-0.15:o.w,h1,long?o.d:o.d-0.15,toon(COL.barrierDark));
+      addBox(g,o.x,h1-0.08,o.z,o.w+0.04,0.16,o.d+0.04,toon(0x2c323a));
+    } else {
+      // 사물함 뱅크
+      const n=Math.max(2,Math.round(L/0.9)), uw=(L-(n-1)*0.04)/n;
+      for(let k=0;k<n;k++){
+        const off=-L/2+uw/2+k*(uw+0.04);
+        const m=toon(k%2?COL.barrier:COL.barrierDark);
+        if(long) addBox(g,o.x+off,0,o.z,uw,H,o.d,m); else addBox(g,o.x,0,o.z+off,o.w,H,uw,m);
+      }
+      addBox(g,o.x,H,o.z,o.w+0.06,0.12,o.d+0.06,toon(0x2c323a));
+    }
+  }
+};
+
+function makeChar(kind){
+  const h=kind==='survivor'?CFG.sH:CFG.tH, r=kind==='survivor'?CFG.sR:CFG.tR, c=kind==='survivor'?COL.survivor:COL.tagger;
+  const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
+  const mt=toon(c);
+  const cyl=new THREE.Mesh(GC,mt); cyl.scale.set(r,h-2*r,r); cyl.position.y=h/2; body.add(cyl);
+  const s1=new THREE.Mesh(GS,mt); s1.scale.setScalar(r); s1.position.y=r; body.add(s1);
+  const s2=new THREE.Mesh(GS,mt); s2.scale.setScalar(r); s2.position.y=h-r; body.add(s2);
+  const vis=new THREE.Mesh(GB,toon(COL.visor)); vis.scale.set(r*1.3,0.16,0.14); vis.position.set(0,h-r-0.05,-r+0.02); body.add(vis);
+  body.traverse(o=>{if(o.isMesh){o.castShadow=true;}});
+  let collar=null;
+  if(kind==='survivor'){
+    collar=new THREE.Mesh(new THREE.TorusGeometry(r*0.78,0.06,8,24),new THREE.MeshToonMaterial({color:0x3a1517,gradientMap:grad,emissive:COL.exit,emissiveIntensity:0.15}));
+    collar.rotation.x=Math.PI/2; collar.position.y=h-2*r-0.02; body.add(collar);
+  }
+  scene.add(g);
+  return {kind,x:0,y:0,z:0,vx:0,vy:0,vz:0,r,h,baseH:h,onGround:true,slide:null,slideCd:0,face:0,mesh:g,body,collar,vent:null};
+}
+const chars={survivor:makeChar('survivor'),tagger:makeChar('tagger')};
+
+/* =========================================================
+   7. 월드 빌드
+   ========================================================= */
+let L=null, world=null, cols=[];
+function buildWorld(layout){
+  if(world) scene.remove(world);
+  world=new THREE.Group(); scene.add(world);
+  L=layout; cols=[];
+  const addCol=(x,z,w,d,y0,y1,k)=>cols.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,y0,y1,k});
+  const R2=mulberry32(L.seed^0x9e3779b9);
+
+  for(const c of L.cells){
+    const ft=c.type==='room'?'hangar':c.type;
+    addBox(world,c.cx,-0.1,c.cz,CFG.cell,0.1,CFG.cell,toon(COL['floor_'+ft]),false);
+    if(c.type==='room') addBox(world,c.cx,0.001,c.cz,16,0.009,16,toon(COL.floor_room),false);
+  }
+  for(let k=1;k<CFG.grid;k++){
+    const v=-HALF+k*CFG.cell;
+    addBox(world,v,0,0,0.16,0.011,HALF*2,toon(COL.seam),false);
+    addBox(world,0,0,v,HALF*2,0.011,0.16,toon(COL.seam),false);
+  }
+  // 외곽 벽 + 천장 트러스
+  const W=HALF*2;
+  [[0,-HALF-0.5,W+2,1],[0,HALF+0.5,W+2,1],[-HALF-0.5,0,1,W],[HALF+0.5,0,1,W]].forEach(([x,z,w,d])=>{addBox(world,x,0,z,w,10,d,toon(COL.wall));addCol(x,z,w,d,0,12,'wall');});
+  for(let k=1;k<CFG.grid;k++){
+    const v=-HALF+k*CFG.cell;
+    addBox(world,v,9.4,0,0.5,0.5,W,toon(COL.struct),false);
+    addBox(world,0,9.4,v,W,0.5,0.5,toon(COL.struct),false);
+  }
+  for(const s of L.solids){
+    const m=toon(COL[s.m]);
+    if(s.shutter){ addBox(world,s.x,s.y0,s.z,s.w,s.h,s.d,toon(0x4b5058)); addBox(world,s.x,0,s.z,s.w+0.06,0.35,s.d+0.06,toon(COL.crate)); }
+    else if(s.m==='barrier') MODEL_SLOTS.barrier(world,s,R2);
+    else if(s.m==='table') MODEL_SLOTS.printer_base(world,s);
+    else if(s.shape==='cyl') addCyl(world,s.x,s.y0,s.z,s.w/2,s.h,m); else addBox(world,s.x,s.y0,s.z,s.w,s.h,s.d,m);
+    addCol(s.x,s.z,s.w,s.d,s.y0,s.y0+s.h,s.m);
+  }
+  for(const s of L.shelves){ MODEL_SLOTS.shelf(world,s,R2); addCol(s.x,s.z,s.w,s.d,CFG.shelfGap,CFG.barrierH,'shelf'); }
+  for(const p of L.printers){ MODEL_SLOTS.printer(world,p); addCol(p.x,p.z,p.w,p.d,p.y0,p.y0+CFG.printerH,'printer'); }
+  for(const c of L.crates){ MODEL_SLOTS.crate(world,c); addCol(c.x,c.z,0.9,0.9,0,0.7,'crate'); }
+  for(const t of L.tools) MODEL_SLOTS.tool(world,t);
+  for(const e of L.exits) MODEL_SLOTS.exit(world,e);
+  for(const v of L.vents){
+    MODEL_SLOTS.vent(world,v); v.blink=0;
+    addBox(world,v.x/2,7.7,v.z,Math.abs(v.x)+0.7,0.7,0.7,toon(COL.duct),false);
+    addBox(world,0,7.7,v.z/2,0.7,0.7,Math.abs(v.z)+0.7,toon(COL.duct),false);
+  }
+  addBox(world,0,7.4,0,2.2,1.4,2.2,toon(COL.duct),false);
+  // 빛의 섬: 셀마다 천장등 하나, 둘은 깜빡임
+  L.lightObjs=[];
+  const flick=new Set([Math.floor(R2()*9),Math.floor(R2()*9)]);
+  L.lights.forEach((l,i)=>{
+    const pl=new THREE.PointLight(0xffe6c0,l.room?0.9:1.15,l.room?13:20,1.6);
+    pl.position.set(l.x,l.y,l.z); world.add(pl);
+    addBox(world,l.x,l.y+0.15,l.z,1.4,0.14,0.4,new THREE.MeshBasicMaterial({color:COL.lamp}),false);
+    L.lightObjs.push({pl,base:pl.intensity,flick:flick.has(i),t:R2()*10});
+  });
+  // 스폰
+  for(const k of ['survivor','tagger']){
+    const ch=chars[k], sp=L.spawn[k];
+    Object.assign(ch,{x:sp.x,z:sp.z,y:0,vx:0,vy:0,vz:0,slide:null,vent:null,h:ch.baseH,onGround:true,face:Math.atan2(sp.x,sp.z)});
+    ch.body.scale.y=1;
+    ch.mesh.visible=true;
+  }
+  ping=null; pingTimer=CFG.pingInterval;
+  renderPanel(); buildMiniStatic();
+}
+
+/* =========================================================
+   8. 캐릭터 이동 · 충돌 (AABB)
+   ========================================================= */
+function xzHit(ch,b,r){return !(ch.x+r<=b.x0||ch.x-r>=b.x1||ch.z+r<=b.z0||ch.z-r>=b.z1);}
+function moveAxis(ch,ax,d){
+  if(!d) return;
+  ch[ax]+=d;
+  for(const b of cols){
+    if(!xzHit(ch,b,ch.r)) continue;
+    if(b.y0>=ch.y+ch.h-0.01||b.y1<=ch.y+CFG.step) continue;
+    if(ax==='x'){ch.x=d>0?b.x0-ch.r-0.001:b.x1+ch.r+0.001;ch.vx=0;}
+    else {ch.z=d>0?b.z0-ch.r-0.001:b.z1+ch.r+0.001;ch.vz=0;}
+  }
+}
+function vertical(ch,dt){
+  ch.vy-=CFG.g*dt;
+  let ny=ch.y+ch.vy*dt; const r=ch.r*0.9;
+  if(ch.vy<=0){
+    let ground=0;
+    for(const b of cols) if(xzHit(ch,b,r)&&b.y1<=ch.y+CFG.step+0.001&&b.y1>ground) ground=b.y1;
+    if(ny<=ground){ny=ground;ch.vy=0;ch.onGround=true;} else ch.onGround=false;
+  } else {
+    for(const b of cols) if(xzHit(ch,b,r)&&b.y0>=ch.y+ch.h-0.05&&ny+ch.h>b.y0){ny=b.y0-ch.h;ch.vy=0;}
+    ch.onGround=false;
+  }
+  ch.y=ny;
+}
+function canStand(ch){
+  for(const b of cols) if(xzHit(ch,b,ch.r)&&b.y0<ch.y+ch.baseH&&b.y1>ch.y+CFG.step) return false;
+  return true;
+}
+function updateChar(ch,dt,inp){
+  if(ch.vent) return;
+  const isS=ch.kind==='survivor';
+  const hv=Math.hypot(ch.vx,ch.vz);
+  if(isS&&inp.slide&&ch.onGround&&!ch.slide&&hv>=CFG.slideMin&&ch.slideCd<=0){
+    ch.slide={t:CFG.slideTime,dx:ch.vx/hv,dz:ch.vz/hv}; ch.h=CFG.slideH;
+  }
+  if(ch.slide){
+    ch.slide.t-=dt;
+    let sp=CFG.slideEnd+(CFG.slideSpeed-CFG.slideEnd)*Math.max(0,ch.slide.t/CFG.slideTime);
+    if(ch.slide.t<=0){
+      if(canStand(ch)){ch.slide=null;ch.h=ch.baseH;ch.slideCd=0.5;}
+      else {sp=CFG.crawl; if(inp.mx||inp.mz){ch.slide.dx=inp.mx;ch.slide.dz=inp.mz;} ch.slide.crawl=true;}
+    }
+    if(ch.slide){ch.vx=ch.slide.dx*sp;ch.vz=ch.slide.dz*sp;}
+  }
+  if(!ch.slide){
+    const ts=isS?(inp.sprint?CFG.sSprint:CFG.sWalk):CFG.tSpeed;
+    const a=1-Math.exp(-(ch.onGround?14:4)*dt);
+    ch.vx+=(inp.mx*ts-ch.vx)*a; ch.vz+=(inp.mz*ts-ch.vz)*a;
+    if(inp.jump&&ch.onGround){ch.vy=isS?CFG.sJump:CFG.tJump;ch.onGround=false;}
+  }
+  ch.slideCd-=dt;
+  moveAxis(ch,'x',ch.vx*dt); moveAxis(ch,'z',ch.vz*dt);
+  vertical(ch,dt);
+  if(Math.hypot(ch.vx,ch.vz)>0.4) ch.face=Math.atan2(-ch.vx,-ch.vz);
+}
+function syncMesh(ch,t){
+  ch.mesh.position.set(ch.x,ch.y,ch.z);
+  ch.mesh.rotation.y=ch.face;
+  const s=ch.h/ch.baseH; ch.body.scale.y+= (s-ch.body.scale.y)*0.4;
+  ch.body.rotation.x=ch.slide?-0.25:0;
+}
+
+/* =========================================================
+   9. 입력 · 카메라
+   ========================================================= */
+const keys={}; let pressed={};
+const cam={mode:'overview',yaw:0.62,pitch:0.86,dist:92,pyaw:0,ppitch:0.32,pdist:5.4};
+function setMode(m){
+  cam.mode=m;
+  for(const b of document.querySelectorAll('[data-mode]')) b.setAttribute('aria-pressed',b.dataset.mode===m?'true':'false');
+  if(m!=='overview'){cam.pyaw=chars[m].face;}
+  else if(document.pointerLockElement) document.exitPointerLock();
+  updateLockHint();
+}
+function updateLockHint(){
+  const fine=matchMedia('(pointer:fine)').matches;
+  $('#lockHint').hidden=!(fine&&cam.mode!=='overview'&&document.pointerLockElement!==canvas&&!lockHintDismissed);
+}
+let lockHintDismissed=false;
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{setMode(b.dataset.mode);canvas.focus();}));
+
+addEventListener('keydown',e=>{
+  if(e.target&&e.target.tagName==='INPUT') return;
+  ensureAudio();
+  keys[e.code]=true; if(!e.repeat) pressed[e.code]=true;
+  if(e.code==='Space'||e.code.startsWith('Arrow')) e.preventDefault();
+  if(e.repeat) return;
+  if(e.code==='Digit1') setMode('survivor');
+  else if(e.code==='Digit2') setMode('tagger');
+  else if(e.code==='KeyV') setMode('overview');
+  else if(e.code==='KeyR') newSeed();
+  else if(e.code==='KeyG') setV2(!CFG.v2);
+});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+addEventListener('blur',()=>{for(const k in keys) keys[k]=false;});
+
+function rotate(dx,dy){
+  if(cam.mode==='overview'||chars.tagger.vent&&cam.mode==='tagger'){
+    cam.yaw-=dx*0.005; cam.pitch=Math.min(1.45,Math.max(0.25,cam.pitch+dy*0.004));
+  } else {
+    cam.pyaw-=dx*0.0028; cam.ppitch=Math.min(1.2,Math.max(-0.3,cam.ppitch+dy*0.0025));
+  }
+}
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{
+  ensureAudio(); canvas.focus();
+  if(cam.mode!=='overview'&&e.pointerType==='mouse'&&document.pointerLockElement!==canvas){
+    try{const p=canvas.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(_){}
+    lockHintDismissed=true; updateLockHint();
+  }
+  drag={x:e.clientX,y:e.clientY}; try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+});
+canvas.addEventListener('pointermove',e=>{
+  if(document.pointerLockElement===canvas) return;
+  if(!drag) return;
+  rotate(e.clientX-drag.x,e.clientY-drag.y); drag={x:e.clientX,y:e.clientY};
+});
+addEventListener('pointerup',()=>{drag=null;});
+addEventListener('mousemove',e=>{if(document.pointerLockElement===canvas) rotate(e.movementX,e.movementY);});
+document.addEventListener('pointerlockchange',updateLockHint);
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  if(cam.mode==='overview') cam.dist=Math.min(150,Math.max(22,cam.dist*(1+Math.sign(e.deltaY)*0.08)));
+  else cam.pdist=Math.min(10,Math.max(2.4,cam.pdist+Math.sign(e.deltaY)*0.4));
+},{passive:false});
+
+function inputFor(){
+  let fx=-Math.sin(cam.pyaw),fz=-Math.cos(cam.pyaw),rx=Math.cos(cam.pyaw),rz=-Math.sin(cam.pyaw),mx=0,mz=0;
+  if(keys.KeyW||keys.ArrowUp){mx+=fx;mz+=fz;} if(keys.KeyS||keys.ArrowDown){mx-=fx;mz-=fz;}
+  if(keys.KeyD||keys.ArrowRight){mx+=rx;mz+=rz;} if(keys.KeyA||keys.ArrowLeft){mx-=rx;mz-=rz;}
+  const n=Math.hypot(mx,mz); if(n){mx/=n;mz/=n;}
+  return {mx,mz,sprint:!!(keys.ShiftLeft||keys.ShiftRight),jump:!!pressed.Space,slide:!!(pressed.KeyC||pressed.ControlLeft)};
+}
+const NONE={mx:0,mz:0,sprint:false,jump:false,slide:false};
+
+const _t=new THREE.Vector3(),_d=new THREE.Vector3(),_p=new THREE.Vector3();
+function pointBlocked(p){for(const b of cols) if(p.x>b.x0&&p.x<b.x1&&p.z>b.z0&&p.z<b.z1&&p.y>b.y0&&p.y<b.y1) return true;return false;}
+function updateCamera(){
+  const overview=cam.mode==='overview'||(cam.mode==='tagger'&&chars.tagger.vent);
+  if(overview){
+    const d=chars.tagger.vent&&cam.mode==='tagger'?Math.max(cam.dist,92):cam.dist;
+    const p=chars.tagger.vent&&cam.mode==='tagger'?Math.max(cam.pitch,1.15):cam.pitch;
+    camera.position.set(Math.sin(cam.yaw)*Math.cos(p)*d,Math.sin(p)*d,Math.cos(cam.yaw)*Math.cos(p)*d);
+    camera.lookAt(0,0,0); return;
+  }
+  const ch=chars[cam.mode];
+  _t.set(ch.x,ch.y+ch.h*0.85+0.25,ch.z);
+  _d.set(Math.sin(cam.pyaw)*Math.cos(cam.ppitch),Math.sin(cam.ppitch),Math.cos(cam.pyaw)*Math.cos(cam.ppitch));
+  let len=cam.pdist;
+  for(let s=0.4;s<=cam.pdist;s+=0.2){_p.copy(_t).addScaledVector(_d,s); if(pointBlocked(_p)||_p.y<0.2){len=Math.max(0.5,s-0.3);break;}}
+  camera.position.copy(_t).addScaledVector(_d,len);
+  camera.lookAt(_t);
+}
+
+/* =========================================================
+   10. 벤트 · 목줄 핑 · 사운드
+   ========================================================= */
+let AC=null;
+function ensureAudio(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(_){AC=null;}}
+  if(AC&&AC.state==='suspended') AC.resume().catch(()=>{});
+}
+function clank(vol){
+  if(!AC) return;
+  const t=AC.currentTime,len=0.28,buf=AC.createBuffer(1,Math.floor(AC.sampleRate*len),AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+  const src=AC.createBufferSource(); src.buffer=buf;
+  const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=850; bp.Q.value=2.2;
+  const gn=AC.createGain(); gn.gain.value=vol;
+  src.connect(bp); bp.connect(gn); gn.connect(AC.destination); src.start(t);
+  const o=AC.createOscillator(); o.type='square'; o.frequency.setValueAtTime(170,t); o.frequency.exponentialRampToValueAtTime(55,t+0.22);
+  const og=AC.createGain(); og.gain.setValueAtTime(vol*0.22,t); og.gain.exponentialRampToValueAtTime(0.001,t+0.26);
+  o.connect(og); og.connect(AC.destination); o.start(t); o.stop(t+0.3);
+}
+let toastT=0;
+function toast(msg){const el=$('#toast');el.textContent=msg;el.hidden=false;toastT=2.4;}
+function ventEvent(v,verb){
+  v.blink=1.5;
+  const d=dist(v,chars.survivor);
+  clank(Math.max(0.06,1-d/45)*0.5);
+  toast(`벤트 ${verb} 소리 · ${v.label} · 생존자에게서 ${d.toFixed(0)}m`);
+}
+function ventOrder(from){return L.vents.map((v,i)=>i).filter(i=>i!==from).sort((a,b)=>dist(L.vents[a],L.vents[from])-dist(L.vents[b],L.vents[from]));}
+function handleVent(dt){
+  const t=chars.tagger;
+  if(t.vent){
+    const v=t.vent;
+    if(v.travel>0){
+      v.travel-=dt;
+      if(v.travel<=0){
+        const to=L.vents[v.sel];
+        Object.assign(t,{x:to.x,z:to.z,y:0,vx:0,vz:0,vy:0}); t.mesh.visible=true; t.vent=null;
+        ventEvent(to,'출구');
+      }
+      return;
+    }
+    if(cam.mode!=='tagger') return;
+    const ord=ventOrder(v.from);
+    if(pressed.KeyQ||pressed.KeyE){let k=ord.indexOf(v.sel);k=(k+(pressed.KeyE?1:ord.length-1))%ord.length;v.sel=ord[k];}
+    if(pressed.KeyF){v.travel=dist(L.vents[v.from],L.vents[v.sel])/CFG.ventSpeed+0.4;v.total=v.travel;}
+    return;
+  }
+  if(cam.mode!=='tagger'||!pressed.KeyF||!t.onGround) return;
+  let best=-1,bd=1.8;
+  L.vents.forEach((v,i)=>{const d=dist(v,t);if(d<bd){bd=d;best=i;}});
+  if(best<0) return;
+  const ord=ventOrder(best);
+  t.vent={from:best,sel:ord[0],travel:-1}; t.mesh.visible=false; t.vx=t.vz=0;
+  ventEvent(L.vents[best],'진입');
+}
+let ping=null,pingTimer=CFG.pingInterval;
+function handlePing(dt){
+  const s=chars.survivor;
+  pingTimer-=dt;
+  if(pingTimer<=0){
+    pingTimer=CFG.pingInterval;
+    const a=Math.random()*Math.PI*2, r=Math.random()*CFG.pingFuzz;
+    ping={x:s.x+Math.cos(a)*r,z:s.z+Math.sin(a)*r,t:0};
+  }
+  if(ping){ping.t+=dt;if(ping.t>2.2) ping=null;}
+  if(s.collar){const on=ping&&ping.t<0.6&&Math.sin(ping.t*30)>0;s.collar.material.emissiveIntensity=on?1.6:0.15;}
+}
+
+/* =========================================================
+   11. HUD · 패널 · 미니맵
+   ========================================================= */
+function renderPanel(){
+  $('#seed').value=L.seed===undefined?CFG.seed:baseSeed;
+  $('#cfg-pmin').value=CFG.printerMinDist; $('#cfg-vmin').value=CFG.ventMinDist;
+  $('#cfg-shelf').value=CFG.minShelves; $('#cfg-crates').value=CFG.crates;
+  $('#rules').innerHTML=L.rules.map(r=>`<li><span class="chip ${r.ok?'ok':'bad'}">${r.ok?'통과':'미달'}</span><span>${r.name}</span><span class="rv">${r.val}</span></li>`).join('');
+  const reach=CFG.tSpeed*CFG.alertSec, diag=Math.hypot(HALF*2,HALF*2);
+  const mods=L.cells.map(c=>TYPE_LABEL[c.type]);
+  const uk={}; new Map(L.shelves.map(o=>[o.lid,o.unit||'I'])).forEach(k=>{uk[k]=(uk[k]||0)+1;});
+  const unitTxt=['L','T','I'].filter(k=>uk[k]).map(k=>`${SHELF_KIND_LABEL[k]} ${uk[k]}`).join(' · ');
+  const rowsTxt=[0,1,2].map(r=>mods.slice(r*3,r*3+3).join(' · ')).join(' / ');
+  $('#ruleNote').innerHTML=`${L.ok?'모든 규칙 통과':'400회 시도 내 전부 통과하는 조합 없음 — 가장 근접한 조합 표시'} · 생성 시도 ${L.attempts}회<br>모듈: ${rowsTxt}<br>`+
+    `선반 ${L.lines.length}개 · 구조물 ${unitTxt} · 술래 우회 <b>+${Math.min(...L.lines.map(l=>l.detour)).toFixed(1)}~${Math.max(...L.lines.map(l=>l.detour)).toFixed(1)}초</b><br>`+
+    `술래가 프린터 알림 후 ${CFG.alertSec}초 동안 직선으로 갈 수 있는 거리 <b>${reach.toFixed(0)}m</b> · 맵 대각선 ${diag.toFixed(0)}m`;
+  const m=L.metrics||{}, eg=L.edges;
+  const met=[
+    {name:'최대 시야선 (눈높이)',val:fm(m.maxSight),ok:m.maxSight<=CFG.sightMax},
+    {name:'상위 10% 지점 시야선',val:fm(m.p90),ok:m.p90<=CFG.sightMax},
+    {name:`${CFG.sightMax}m 넘게 보이는 지점`,val:((m.expo||0)*100).toFixed(0)+'%',ok:(m.expo||0)<=0.05},
+    {name:'프린터·탈출구 간 우회율 (평균)',val:(m.detour||0).toFixed(2)+'×',ok:m.detour>=1.3&&m.detour<=1.8},
+    {name:'구획 루프 · 막다른 셀',val:eg?`${eg.loops} · ${eg.deadEnds}`:'구획 없음',ok:!!eg&&eg.loops>=2&&eg.deadEnds<=1},
+    {name:'시야선 차단물',val:`${(L.breakers||[]).length}개`,ok:true}
+  ];
+  $('#metrics').innerHTML=met.map(r=>`<li><span class="chip ${r.ok?'ok':'bad'}">${r.ok?'목표':'초과'}</span><span>${r.name}</span><span class="rv">${r.val}</span></li>`).join('');
+  const ec=eg?Object.entries(eg.edges.reduce((a,e)=>(a[e.type]=(a[e.type]||0)+1,a),{})).map(([k,v])=>`${EDGE_LABEL[k]} ${v}`).join(' · '):'';
+  $('#metricNote').innerHTML=(eg?`경계 12개: ${ec}<br>`:'v1: 셀 경계 없음 — 모듈 사이 3m 띠가 맵 끝까지 이어짐<br>')+
+    `미니맵 <b>빨간 점선</b> = 가장 긴 시야선 · <b>주황 테두리</b> = 시야선 차단물 · <kbd>G</kbd> 같은 시드로 이전/이후 전환`;
+  document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',(b.dataset.v==='2')===CFG.v2?'true':'false'));
+  $('#legend').innerHTML=LEGEND.map(([k,lab,slot])=>`<li><span class="sw" style="background:${hex(COL[k])}"></span><span>${lab}</span><span class="rv" style="margin-left:auto">${slot}</span></li>`).join('');
+}
+const mini=$('#mini'), mctx=mini.getContext('2d'); let miniStatic=null;
+function sizeMini(){const css=mini.clientWidth||200,d=devicePixelRatio||1;mini.width=Math.round(css*d);mini.height=Math.round(css*d);if(L) buildMiniStatic();}
+const MW=()=>mini.width/(HALF*2+4);
+const mx_=v=>(v+HALF+2)*MW();
+function buildMiniStatic(){
+  const c=document.createElement('canvas'); c.width=mini.width; c.height=mini.height;
+  const x=c.getContext('2d'), s=MW();
+  x.fillStyle='#14171b'; x.fillRect(0,0,c.width,c.height);
+  const tint={hangar:'#262b31',rack:'#2c2f34',lab:'#233030',room:'#2f2a27'};
+  for(const cl of L.cells){x.fillStyle=tint[cl.type];x.fillRect(mx_(cl.cx-12),mx_(cl.cz-12),24*s,24*s);}
+  x.strokeStyle='#3a4048'; x.lineWidth=Math.max(1,s*0.15);
+  for(const cl of L.cells) x.strokeRect(mx_(cl.cx-12),mx_(cl.cz-12),24*s,24*s);
+  x.fillStyle='rgba(149,156,165,.55)'; x.font=`${Math.round(s*2.6)}px "IBM Plex Sans KR",sans-serif`; x.textAlign='center'; x.textBaseline='middle';
+  for(const cl of L.cells) x.fillText(TYPE_LABEL[cl.type],mx_(cl.cx),mx_(cl.cz+9.5));
+  const fillR=(o,col)=>{x.fillStyle=col;x.fillRect(mx_(o.x-o.w/2),mx_(o.z-o.d/2),o.w*s,o.d*s);};
+  for(const o of L.solids){ if(o.y0>2) continue; fillR(o,o.m==='block'?hex(COL.block):o.m==='wall'?'#8a9198':o.m==='barrier'?'#8794a5':o.m==='table'?hex(COL.table):o.m==='lab'?hex(COL.lab):'#5d646c'); }
+  for(const o of L.solids){ if(o.y0>2) fillR(o,'rgba(109,116,124,.6)'); }
+  for(const o of L.shelves) fillR(o,hex(COL.shelf));
+  x.setLineDash([s*1.2,s*1.2]); x.strokeStyle='rgba(63,200,192,.35)'; x.lineWidth=Math.max(1,s*0.25);
+  for(const p of L.printers){x.beginPath();x.arc(mx_(p.x),mx_(p.z),CFG.ventMinDist*s,0,Math.PI*2);x.stroke();}
+  x.setLineDash([]);
+  for(const p of L.printers) fillR({x:p.x,z:p.z,w:p.w+0.6,d:p.d+0.6},hex(COL.printer));
+  for(const c of L.crates) fillR({x:c.x,z:c.z,w:1.3,d:1.3},hex(COL.crate));
+  for(const t of L.tools){x.fillStyle=hex(COL[t.kind]);x.beginPath();x.arc(mx_(t.x),mx_(t.z),s*0.9,0,Math.PI*2);x.fill();}
+  for(const v of L.vents){x.fillStyle=hex(COL.vent);x.beginPath();x.arc(mx_(v.x),mx_(v.z),s*1.0,0,Math.PI*2);x.fill();}
+  for(const e of L.exits){const w=e.nx?1.2:4,d=e.nx?4:1.2;fillR({x:e.x+e.nx*0.4,z:e.z+e.nz*0.4,w,d},hex(COL.exit));}
+  x.strokeStyle='#8a9198'; x.lineWidth=Math.max(1.5,s*0.4); x.strokeRect(mx_(-HALF),mx_(-HALF),HALF*2*s,HALF*2*s);
+  // 시야선 차단물(주황 테두리) · 가장 긴 시야선(빨간 점선)
+  x.strokeStyle='#f0a030'; x.lineWidth=Math.max(1.5,s*0.35);
+  for(const b of L.breakers||[]) x.strokeRect(mx_(b.x-b.w/2)-s*0.4,mx_(b.z-b.d/2)-s*0.4,b.w*s+s*0.8,b.d*s+s*0.8);
+  const ray=L.metrics&&L.metrics.ray;
+  if(ray&&ray.len){
+    x.strokeStyle=ray.len>CFG.sightMax?'#ef5a5f':'#57c785'; x.lineWidth=Math.max(1.5,s*0.45); x.setLineDash([s*1.5,s*1]);
+    x.beginPath(); x.moveTo(mx_(cPos(ray.i0)),mx_(cPos(ray.j0))); x.lineTo(mx_(cPos(ray.i1)),mx_(cPos(ray.j1))); x.stroke(); x.setLineDash([]);
+  }
+  miniStatic=c;
+}
+function drawMini(){
+  if(!miniStatic) return;
+  const x=mctx,s=MW();
+  x.drawImage(miniStatic,0,0);
+  const tv=chars.tagger.vent;
+  if(tv){const v=L.vents[tv.sel];x.strokeStyle='#bff0cf';x.lineWidth=Math.max(1.5,s*0.4);x.beginPath();x.arc(mx_(v.x),mx_(v.z),s*2.4,0,Math.PI*2);x.stroke();
+    const f=L.vents[tv.from];x.setLineDash([s,s]);x.beginPath();x.moveTo(mx_(f.x),mx_(f.z));x.lineTo(mx_(v.x),mx_(v.z));x.stroke();x.setLineDash([]);}
+  if(ping){const k=ping.t/2.2;x.strokeStyle=`rgba(214,58,143,${(1-k).toFixed(2)})`;x.lineWidth=Math.max(1.5,s*0.35);x.beginPath();x.arc(mx_(ping.x),mx_(ping.z),(1+k*CFG.pingFuzz)*s,0,Math.PI*2);x.stroke();}
+  for(const k of ['survivor','tagger']){
+    const ch=chars[k]; if(k==='tagger'&&ch.vent) continue;
+    const px=mx_(ch.x),pz=mx_(ch.z),f=ch.face,sz=s*1.6;
+    x.save(); x.translate(px,pz); x.rotate(-f);
+    x.fillStyle=hex(COL[k]); x.strokeStyle='#0b0c0e'; x.lineWidth=Math.max(1,s*0.2);
+    x.beginPath(); x.moveTo(0,-sz*1.3); x.lineTo(sz*0.85,sz*0.8); x.lineTo(-sz*0.85,sz*0.8); x.closePath(); x.fill(); x.stroke();
+    x.restore();
+  }
+}
+let lastStat='',lastPrompt='';
+function nearest(ch){
+  let best=null,bd=Infinity;
+  const test=(arr,lab,slot,r)=>{for(const o of arr){const d=dist(o,ch);if(d<r&&d<bd){bd=d;best={o,lab:typeof lab==='function'?lab(o):lab,slot:typeof slot==='function'?slot(o):slot};}}};
+  test(L.printers,'3D 프린터','printer',2.4); test(L.crates,'플라스틱 상자','crate',2);
+  test(L.tools,o=>TOOL_LABEL[o.kind],o=>'tool_'+o.kind,2); test(L.exits,'탈출구','exit',3.2); test(L.vents,'벤트 출구','vent',2.2); test(L.shelves,'슬라이딩 선반','shelf',2.0);
+  return best;
+}
+function updateHud(){
+  let st, pr='';
+  if(cam.mode==='overview'){
+    st=`전체 보기 · 시드 ${baseSeed}\n드래그 회전 · 휠 줌 · 1/2로 캐릭터 조작`;
+  } else {
+    const ch=chars[cam.mode], hv=Math.hypot(ch.vx,ch.vz);
+    let state=ch.vent?(ch.vent.travel>0?'벤트 이동 중':'벤트 안'):ch.slide?(ch.slide.crawl?'선반 밑 기어가기':'슬라이딩'):!ch.onGround?'공중':hv>CFG.sWalk+0.3?'달리기':hv>0.3?'이동':'정지';
+    const extra=ch.kind==='survivor'?(hv>=CFG.slideMin&&!ch.slide?' · 슬라이딩 가능':''):'';
+    st=`${ch.kind==='survivor'?'생존자':'술래'} · ${state}${extra}\n속도 ${hv.toFixed(1)} m/s · 높이 ${ch.y.toFixed(2)} m`;
+    if(ch.vent){
+      const v=ch.vent, to=L.vents[v.sel], d=dist(L.vents[v.from],to);
+      pr=v.travel>0?`벤트 이동 중 → ${to.label} · ${Math.max(0,v.travel).toFixed(1)}초`:`벤트 안 · 출구 <kbd>Q/E</kbd> ${to.label} (${d.toFixed(0)}m, ${(d/CFG.ventSpeed+0.4).toFixed(1)}초) · <kbd>F</kbd> 이동`;
+    } else {
+      const n=nearest(ch);
+      if(n) pr=`${n.o.label} · ${n.lab} · 모델 슬롯 <kbd>${n.slot}</kbd>`+(ch.kind==='tagger'&&n.slot==='vent'?' · <kbd>F</kbd> 벤트 진입':'');
+      else if(ch.kind==='survivor'&&hv>=CFG.slideMin&&!ch.slide) pr='<kbd>C</kbd> 슬라이딩';
+    }
+  }
+  if(st!==lastStat){$('#stat').textContent=st;lastStat=st;}
+  if(pr!==lastPrompt){const el=$('#prompt');el.innerHTML=pr;el.hidden=!pr;lastPrompt=pr;}
+}
+
+/* =========================================================
+   12. 생성 버튼 · 루프
+   ========================================================= */
+let baseSeed=CFG.seed;
+function regen(seed){baseSeed=seed>>>0;buildWorld(generate(baseSeed));}
+function readCfg(){
+  const num=(id,def,min,max)=>{const v=parseFloat($(id).value);return isFinite(v)?Math.min(max,Math.max(min,v)):def;};
+  CFG.printerMinDist=num('#cfg-pmin',CFG.printerMinDist,0,40);
+  CFG.ventMinDist=num('#cfg-vmin',CFG.ventMinDist,0,40);
+  CFG.minShelves=Math.round(num('#cfg-shelf',CFG.minShelves,0,20));
+  CFG.crates=Math.round(num('#cfg-crates',CFG.crates,1,40));
+}
+function newSeed(){regen(Math.floor(Math.random()*1e9));}
+function setV2(on){CFG.v2=!!on;regen(baseSeed);toast(CFG.v2?'이후 (v2) · 구획 이음부 + 시야선 검사':'이전 (v1) · 셀 경계 없음');}
+document.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>setV2(b.dataset.v==='2')));
+$('#b-gen').addEventListener('click',()=>{readCfg();const v=parseInt($('#seed').value,10);regen(isFinite(v)?v:baseSeed);});
+$('#b-new').addEventListener('click',()=>{readCfg();newSeed();});
+document.querySelectorAll('.cfg input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#b-gen').click();}}));
+
+if(innerWidth<=760){$('#side').open=false;$('#keys').open=false;}
+addEventListener('resize',resize);
+resize();
+regen(CFG.seed);
+setMode('overview');
+
+let last=performance.now(), clock=0;
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now; clock+=dt;
+  for(const lo of L.lightObjs){ if(!lo.flick) continue; lo.t+=dt; const n=Math.sin(lo.t*13)+Math.sin(lo.t*7.3)+Math.sin(lo.t*29); lo.pl.intensity=n>1.6?lo.base*0.12:lo.base; }
+  for(const t of L.tools) if(t.spin) t.spin.rotation.y+=dt*1.2;
+  for(const v of L.vents){
+    if(v.blink>0){v.blink-=dt;v.mat.emissiveIntensity=Math.sin(clock*28)>0?1.3:0.25;} else v.mat.emissiveIntensity=0;
+    const sel=chars.tagger.vent&&L.vents[chars.tagger.vent.sel]===v;
+    v.marker.visible=!!sel; if(sel) v.marker.position.y=0.35+Math.sin(clock*4)*0.12;
+  }
+  handleVent(dt);
+  for(const k of ['survivor','tagger']){
+    const ch=chars[k];
+    updateChar(ch,dt,cam.mode===k&&!ch.vent?inputFor():NONE);
+    syncMesh(ch,clock);
+  }
+  handlePing(dt);
+  if(toastT>0){toastT-=dt;if(toastT<=0)$('#toast').hidden=true;}
+  pressed={};
+  updateCamera(); updateHud(); drawMini(); render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__lab={tryLayout,scan:()=>sightScan(sightGrid(L),walkGrid(L),CFG.sightMax),chars,get L(){return L;},cam,setMode,generate,setV2,regen,CFG,
+  batch(n,v2,seed0){const keep=CFG.v2;CFG.v2=v2;const out=[];for(let k=0;k<n;k++){const t0=performance.now();const G=generate((seed0||1000)+k*104729);
+    out.push({seed:G.seed,ok:G.ok,att:G.attempts,ms:performance.now()-t0,maxSight:G.metrics.maxSight,p90:G.metrics.p90,expo:G.metrics.expo,detour:G.metrics.detour,reach:G.metrics.reach,
+      loops:G.edges?G.edges.loops:null,dead:G.edges?G.edges.deadEnds:null,breakers:G.breakers.length,baffles:G.breakers.filter(b=>b.baffle).length,shelves:G.shelves.length,pE:G.metrics.printerExpo,cE:G.metrics.crateExpo,pv:G.metrics.printerVent,pvm:G.metrics.printerVentMean,unitCr:G.crates.filter(c=>c.unit).length,pocketCr:G.crates.filter(c=>c.pocket).length,units:G.lines.map(l=>l.kind),detMin:Math.min(...G.lines.map(l=>l.detour)),detMax:Math.max(...G.lines.map(l=>l.detour)),edges:G.edges?G.edges.edges.map(e=>e.type):null});}
+    CFG.v2=keep;return out;}};
+})();
+</script>
